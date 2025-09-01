@@ -3,20 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compteur Coinche – 2000 points (règles perso)</title>
+<title>Compteur Coinche – 2000 points</title>
 <style>
   :root{
     --bg:#FAF6F2; --card:#FFFFFF; --txt:#2B3640; --muted:#6B7A8C; --border:#E9E5E0; --accent:#466781;
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{max-width:860px;margin:24px auto;padding:16px}
+  .wrap{max-width:880px;margin:24px auto;padding:16px}
   h1{font-size:22px;margin:0 0 12px;font-weight:800}
-  .sub{color:var(--muted);margin-bottom:20px;font-size:14px}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
   .row{display:flex;gap:10px;flex-wrap:wrap}
   .col{flex:1 1 200px}
   label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-  input[type="text"],input[type="number"],select{
+  input[type="number"],select{
     width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;
     padding:10px 12px;font-size:15px;color:var(--txt);outline:none
   }
@@ -24,8 +23,6 @@
        font-weight:600;cursor:pointer}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.danger{background:#b94747;border-color:#b94747;color:#fff}
-  .btn.ghost{background:#fff;color:var(--txt)}
-  .pill{display:inline-block;padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:13px;color:var(--muted)}
   .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
   .scorebox{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
   .scorebox h3{margin:0 0 4px;font-size:16px}
@@ -37,51 +34,31 @@
   th{background:#f7f4f0;text-align:left;color:#354556}
   tr:hover td{background:#faf9f7}
   .right{text-align:right}
-  .hint{font-size:12px;color:var(--muted)}
-  .badge{display:inline-block;background:#eef3f7;color:#254155;font-weight:700;font-size:12px;padding:4px 8px;border-radius:999px}
+  .editable{outline:1px dashed transparent}
+  .editable:focus{outline-color:var(--accent); background:#f5f9fc}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Compteur Coinche – 2000 points</h1>
-  <div class="sub">
-    Règles: <span class="pill">contrat fait = annonce + score</span>
-    <span class="pill">chute = annonce + 160 (défense)</span>
-    <span class="pill">capot annoncé=500</span>
-    <span class="pill">capot non annoncé=250+annonce</span>
-  </div>
 
-  <!-- ÉQUIPES & OBJECTIF -->
+  <!-- SCORES -->
   <div class="card">
-    <div class="row">
-      <div class="col">
-        <label>Équipe A</label>
-        <input id="teamA" type="text" value="Nous">
-      </div>
-      <div class="col">
-        <label>Équipe B</label>
-        <input id="teamB" type="text" value="Eux">
-      </div>
-      <div class="col">
-        <label>Objectif (points)</label>
-        <input id="target" type="number" min="500" step="50" value="2000">
-      </div>
-    </div>
     <div class="scores">
       <div class="scorebox">
-        <h3 id="nameA">Nous</h3>
+        <h3>Équipe A</h3>
         <div class="score" id="scoreA">0</div>
         <div class="progress"><div class="bar" id="barA"></div></div>
       </div>
       <div class="scorebox">
-        <h3 id="nameB">Eux</h3>
+        <h3>Équipe B</h3>
         <div class="score" id="scoreB">0</div>
         <div class="progress"><div class="bar" id="barB"></div></div>
       </div>
     </div>
   </div>
 
-  <!-- SAISIE MANCHE (RÈGLES PERSO) -->
+  <!-- SAISIE MANCHE -->
   <div class="card">
     <div class="row">
       <div class="col">
@@ -103,49 +80,22 @@
         </select>
       </div>
       <div class="col">
-        <label>Coinche / Surcoinche</label>
-        <select id="mul">
+        <label>Coinche</label>
+        <select id="coinche">
           <option value="1">Aucune (×1)</option>
           <option value="2">Coinchée (×2)</option>
-          <option value="4">Surcoinchée (×4)</option>
         </select>
       </div>
     </div>
 
     <div class="row">
       <div class="col">
-        <label>Type de contrat</label>
-        <select id="typeContrat">
-          <option value="normal">Normal (80–160)</option>
-          <option value="capot">Capot</option>
-        </select>
-      </div>
-      <div class="col" id="blocAnnonce">
-        <label>Annonce (valeur du contrat)</label>
-        <input id="annonce" type="number" min="80" step="10" value="100">
-        <div class="hint">Pour Capot non annoncé, l’annonce est utilisée dans “250 + annonce”.</div>
-      </div>
-      <div class="col" id="blocCapot">
-        <label>Capot annoncé ?</label>
-        <select id="capotAnnonce">
-          <option value="no">Non</option>
-          <option value="yes">Oui</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row" id="blocScoreFait">
-      <div class="col">
-        <label>Score fait par le preneur (0–162)</label>
-        <input id="scoreFait" type="number" min="0" max="162" value="0">
-        <div class="hint">Utilisé seulement pour “contrat fait = annonce + score fait”.</div>
+        <label>Annonce (80–160)</label>
+        <input id="annonce" type="number" min="80" max="160" step="10" placeholder="ex. 100">
       </div>
       <div class="col">
-        <label>Contrat réussi ?</label>
-        <select id="success">
-          <option value="yes">Oui</option>
-          <option value="no">Non (chute)</option>
-        </select>
+        <label>Points faits par le preneur (0–162)</label>
+        <input id="scoreFait" type="number" min="0" max="162" placeholder="ex. 82">
       </div>
     </div>
 
@@ -158,14 +108,6 @@
 
   <!-- HISTORIQUE -->
   <div class="card">
-    <div class="row" style="justify-content:space-between;align-items:center">
-      <div><strong>Historique des manches</strong></div>
-      <div class="row" style="gap:8px">
-        <button class="btn ghost" id="exportCsv">Exporter CSV</button>
-        <button class="btn danger" id="resetAll">Réinitialiser</button>
-      </div>
-    </div>
-    <div class="hint" style="margin-top:6px">Clique sur la corbeille d’une ligne pour supprimer la manche.</div>
     <div style="overflow:auto;margin-top:8px">
       <table id="tbl">
         <thead>
@@ -184,185 +126,91 @@
     </div>
     <div id="winner" style="margin-top:10px"></div>
   </div>
-
-  <div class="hint">Données stockées localement (localStorage). Remplace juste ce fichier pour mettre à jour.</div>
 </div>
 
 <script>
 (function(){
   const $ = s => document.querySelector(s);
-
   const S = {
-    teamA: $('#teamA'), teamB: $('#teamB'),
-    nameA: $('#nameA'), nameB: $('#nameB'),
-    target: $('#target'), scoreA: $('#scoreA'), scoreB: $('#scoreB'),
+    scoreA: $('#scoreA'), scoreB: $('#scoreB'),
     barA: $('#barA'), barB: $('#barB'),
-    preneur: $('#preneur'), suit: $('#suit'), mul: $('#mul'),
-    typeContrat: $('#typeContrat'), annonce: $('#annonce'),
-    capotAnnonce: $('#capotAnnonce'), scoreFait: $('#scoreFait'), success: $('#success'),
-    blocAnnonce: $('#blocAnnonce'), blocCapot: $('#blocCapot'), blocScoreFait: $('#blocScoreFait'),
+    preneur: $('#preneur'), suit: $('#suit'),
+    coinche: $('#coinche'), annonce: $('#annonce'), scoreFait: $('#scoreFait'),
     add: $('#add'),
-    tblBody: $('#tbl tbody'), exportCsv: $('#exportCsv'), resetAll: $('#resetAll'),
-    winner: $('#winner')
+    tblBody: $('#tbl tbody'), winner: $('#winner')
   };
-
-  const state = {
-    teams: {A:'Nous', B:'Eux'},
-    target: 2000,
-    rounds: [] // {a,b,note}
-  };
-
-  const KEY='coinche_compteur_customrules_v1';
-  function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-  function load(){
-    try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
-      if(s.teams) state.teams=s.teams;
-      if(s.target) state.target=s.target;
-      if(Array.isArray(s.rounds)) state.rounds = s.rounds;
-    }catch(e){}
-  }
-
-  function applyHeader(){
-    S.teamA.value = state.teams.A; S.teamB.value = state.teams.B;
-    S.nameA.textContent = state.teams.A; S.nameB.textContent = state.teams.B;
-    S.target.value = state.target;
-  }
+  const TARGET = 2000;
+  const state = { rounds:[] };
 
   function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
-
   function render(){
-    applyHeader();
-    const {a,b} = totals();
-    S.scoreA.textContent = a; S.scoreB.textContent = b;
-    const tgt = Math.max(1, state.target);
-    S.barA.style.width = Math.min(100, Math.round(100*a/tgt)) + '%';
-    S.barB.style.width = Math.min(100, Math.round(100*b/tgt)) + '%';
-
-    S.tblBody.innerHTML='';
-    let sa=0,sb=0;
+    const {a,b}=totals(); 
+    S.scoreA.textContent=a; S.scoreB.textContent=b;
+    S.barA.style.width=Math.min(100,Math.round(100*a/TARGET))+'%';
+    S.barB.style.width=Math.min(100,Math.round(100*b/TARGET))+'%';
+    S.tblBody.innerHTML=''; let sa=0,sb=0;
     state.rounds.forEach((r,i)=>{
       sa+=r.a; sb+=r.b;
       const tr=document.createElement('tr');
-      const td1=document.createElement('td'); td1.textContent=i+1;
-      const td2=document.createElement('td'); td2.innerHTML=r.note;
-      const td3=document.createElement('td'); td3.className='right'; td3.textContent='+'+r.a;
-      const td4=document.createElement('td'); td4.className='right'; td4.textContent='+'+r.b;
-      const td5=document.createElement('td'); td5.className='right'; td5.textContent=sa;
-      const td6=document.createElement('td'); td6.className='right'; td6.textContent=sb;
-      const td7=document.createElement('td'); const btn=document.createElement('button'); btn.className='btn danger'; btn.textContent='🗑';
-      btn.onclick=()=>{ state.rounds.splice(i,1); save(); render(); }; td7.appendChild(btn);
-      tr.append(td1,td2,td3,td4,td5,td6,td7); S.tblBody.appendChild(tr);
+      tr.innerHTML=`
+        <td>${i+1}</td>
+        <td>${r.details}</td>
+        <td class="right editable" contenteditable="true" data-i="${i}" data-k="a">${r.a}</td>
+        <td class="right editable" contenteditable="true" data-i="${i}" data-k="b">${r.b}</td>
+        <td class="right">${sa}</td>
+        <td class="right">${sb}</td>
+        <td><button class="btn danger" data-del="${i}">🗑</button></td>`;
+      S.tblBody.appendChild(tr);
     });
-
-    S.winner.innerHTML='';
-    if(a>=state.target || b>=state.target){
-      const w = (a===b)? 'Égalité' : (a>b? state.teams.A : state.teams.B);
-      S.winner.innerHTML = `<span class="badge">Fin</span> ${w==='Égalité' ? 'Égalité '+a+'–'+b : w+' gagne ('+a+'–'+b+')'}`;
+    S.tblBody.querySelectorAll('[contenteditable]').forEach(cell=>{
+      cell.addEventListener('blur', ()=>{
+        const i=parseInt(cell.dataset.i,10), k=cell.dataset.k;
+        let v=parseInt(cell.textContent.trim(),10);
+        if(isNaN(v)||v<0) v=0;
+        state.rounds[i][k]=v;
+        render();
+      });
+      cell.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); cell.blur(); }});
+    });
+    S.tblBody.querySelectorAll('button[data-del]').forEach(btn=>{
+      btn.onclick=()=>{ state.rounds.splice(parseInt(btn.dataset.del,10),1); render(); };
+    });
+    S.winner.textContent='';
+    if(a>=TARGET || b>=TARGET){
+      S.winner.textContent=(a===b?'Égalité':'Victoire '+(a>b?'Équipe A':'Équipe B'))+` (${a}–${b})`;
     }
   }
-
-  // UI toggles
-  function toggleBlocks(){
-    const isCapot = S.typeContrat.value==='capot';
-    S.blocCapot.style.display = isCapot ? 'block':'none';
-    S.blocAnnonce.style.display = 'block'; // toujours utile (capot non annoncé)
-    S.blocScoreFait.style.display = 'block'; // on l’affiche toujours, mais il n’est pas utilisé pour capot annoncé
-  }
-  S.typeContrat.addEventListener('change', toggleBlocks);
-
-  // Inputs persistants
-  S.teamA.addEventListener('input', ()=>{ state.teams.A=S.teamA.value.trim()||'Nous'; save(); render();});
-  S.teamB.addEventListener('input', ()=>{ state.teams.B=S.teamB.value.trim()||'Eux'; save(); render();});
-  S.target.addEventListener('input', ()=>{ const v=parseInt(S.target.value||'2000',10); state.target=isNaN(v)?2000:Math.max(100,v); save(); render(); });
-
-  function clamp(n,min,max){ n=Number(n)||0; if(n<min) n=min; if(n>max) n=max; return n; }
-
-  // Calcul selon règles fournies
+  function clamp(n,min,max){ n=Number(n)||0; return Math.max(min,Math.min(max,n)); }
   function computeRound(){
-    const pr = S.preneur.value;                // 'A' | 'B'
-    const df = pr==='A' ? 'B' : 'A';           // défense
-    const suit = S.suit.value;                 // affichage
-    const mul = parseInt(S.mul.value,10) || 1; // 1|2|4
-    const type = S.typeContrat.value;          // 'normal'|'capot'
-    const annonce = parseInt(S.annonce.value||'0',10); // valeur d’enchère
-    const success = (S.success.value==='yes');
-    const capotAnn = (S.capotAnnonce.value==='yes');
-    const scoreFait = clamp(S.scoreFait.value, 0, 162); // points de plis du preneur
-
-    let a=0,b=0, base=0, note='';
-
-    if(type==='capot'){
-      if(success){
-        if(capotAnn){
-          // 3/ capot annoncé et fait = 500 au preneur
-          base = 500;
-          if(pr==='A'){ a = base*mul; b = 0; }
-          else        { b = base*mul; a = 0; }
-          note = `<strong>Capot</strong> — ${capotAnn?'annoncé':'non annoncé'} — ${suit} — preneur ${state.teams[pr]} ✅ → ${base} × ${mul}`;
-        }else{
-          // 4/ capot non annoncé et fait = 250 + annonce
-          base = 250 + (isNaN(annonce)?0:annonce);
-          if(pr==='A'){ a = base*mul; b = 0; }
-          else        { b = base*mul; a = 0; }
-          note = `<strong>Capot</strong> — non annoncé — ${suit} — preneur ${state.teams[pr]} ✅ → (250 + annonce=${annonce}) × ${mul}`;
-        }
-      }else{
-        if(capotAnn){
-          // 5/ capot annoncé et non fait = 250 + 160 à la défense
-          base = 250 + 160;
-          if(df==='A'){ a = base*mul; b = 0; }
-          else         { b = base*mul; a = 0; }
-          note = `<strong>Capot</strong> — annoncé — ${suit} — ❌ chute → défense ${state.teams[df]} ${(250)}+160 × ${mul}`;
-        }else{
-          // Cas non précisé : capot non annoncé & non fait → on applique la règle 2 (chute normale)
-          base = (isNaN(annonce)?0:annonce) + 160;
-          if(df==='A'){ a = base*mul; b = 0; }
-          else         { b = base*mul; a = 0; }
-          note = `<strong>Capot</strong> — non annoncé — ${suit} — ❌ chute → défense ${state.teams[df]} (annonce ${annonce} + 160) × ${mul}`;
-        }
+    const pr=S.preneur.value, df=(pr==='A'?'B':'A');
+    const suit=S.suit.value, mul=parseInt(S.coinche.value,10)||1;
+    const annonce=clamp(S.annonce.value,80,160);
+    const sf=clamp(S.scoreFait.value,0,162);
+    const prName=(pr==='A'?'Équipe A':'Équipe B');
+    const tookAll=(sf>=160); const success=(sf>=annonce);
+    let a=0,b=0,details='';
+    if(annonce>=160){
+      if(tookAll){ const pts=500*mul; if(pr==='A')a=pts; else b=pts;
+        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      }else{ const pts=250*mul+160; if(df==='A')a=pts; else b=pts;
+        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
       }
+    }else if(tookAll){
+      const pts=(250+annonce)*mul; if(pr==='A')a=pts; else b=pts;
+      details=`Capot non annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+    }else if(success){
+      const prPts=(annonce+sf)*mul, defPts=162-sf;
+      if(pr==='A'){a=prPts; b=defPts;} else {b=prPts; a=defPts;}
+      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else{
-      if(success){
-        // 1/ contrat fait : annonce + score fait (preneur), défense prend le complément des plis
-        const prPoints = (isNaN(annonce)?0:annonce) + Number(scoreFait);
-        const defPlis = 162 - Number(scoreFait);
-        if(pr==='A'){ a = prPoints*mul; b = defPlis; }
-        else        { b = prPoints*mul; a = defPlis; }
-        note = `<strong>Contrat</strong> ${annonce} — ${suit} — preneur ${state.teams[pr]} ✅ → (${annonce} + score ${scoreFait}) × ${mul}`;
-      }else{
-        // 2/ contrat pas fait : défense = annonce + 160 ; preneur = 0
-        base = (isNaN(annonce)?0:annonce) + 160;
-        if(df==='A'){ a = base*mul; b = 0; }
-        else         { b = base*mul; a = 0; }
-        note = `<strong>Contrat</strong> ${annonce} — ${suit} — ❌ chute → défense ${state.teams[df]} (annonce + 160) × ${mul}`;
-      }
+      const defPts=annonce*mul+160; if(df==='A')a=defPts; else b=defPts;
+      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }
-
-    return {a,b,note};
+    return {a,b,details};
   }
-
-  S.add.addEventListener('click', ()=>{
-    const r = computeRound();
-    state.rounds.push(r); save(); render();
-  });
-
-  S.exportCsv.addEventListener('click', ()=>{
-    const rows=[['#','details','+A','+B','ΣA','ΣB']];
-    let sa=0,sb=0;
-    state.rounds.forEach((r,i)=>{ sa+=r.a; sb+=r.b; rows.push([i+1, r.note.replace(/<[^>]+>/g,''), r.a, r.b, sa, sb]); });
-    const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
-    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob); const a=document.createElement('a');
-    a.href=url; a.download='coinche_scores.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  });
-
-  S.resetAll.addEventListener('click', ()=>{
-    if(!confirm('Réinitialiser la partie ?')) return;
-    state.rounds=[]; save(); render();
-  });
-
-  // Init
-  load(); applyHeader(); render(); toggleBlocks();
+  function resetInputs(){ S.preneur.value='A'; S.suit.value='♠'; S.coinche.value='1'; S.annonce.value=''; S.scoreFait.value=''; }
+  S.add.addEventListener('click',()=>{ const r=computeRound(); state.rounds.push(r); render(); resetInputs(); });
+  render();
 })();
 </script>
 </body>
