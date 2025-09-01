@@ -41,6 +41,19 @@
   .hint{font-size:12px;color:var(--muted)}
   .scroll{overflow:auto;-webkit-overflow-scrolling:touch}
   .pill{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc}
+
+  /* Réduction propre de la colonne Détails sur mobile */
+  @media (max-width:480px){
+    td:nth-child(2){ width:55%; }
+    .details{
+      display:inline-block;
+      max-width:200px;     /* ajuste si besoin */
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;  /* … */
+      vertical-align:bottom;
+    }
+  }
 </style>
 </head>
 <body>
@@ -110,7 +123,10 @@
     </div>
     <div style="margin-top:8px">
       <button class="btn primary" id="start">Démarrer la donne</button>
-      <span id="current" style="display:none;margin-left:8px" class="pill">Donne en cours · <span id="currentTxt"></span> <button class="btn" id="cancel" style="margin-left:8px">Annuler</button></span>
+      <span id="current" style="display:none;margin-left:8px" class="pill">
+        Donne en cours · <span id="currentTxt"></span>
+        <button class="btn" id="cancel" style="margin-left:8px">Annuler</button>
+      </span>
     </div>
   </div>
 
@@ -184,6 +200,23 @@
 
   function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
 
+  /* Compacte les détails pour mobile (<=480px)
+     ex: "100 ♠ — Preneur Les Bleus — coinché" -> "A:100♠ · coinché" / "B:100♠ · coinché"
+  */
+  function compactDetails(full, teams){
+    // Détecte preneur A/B à partir du libellé complet
+    let tag = '';
+    if(full.includes(teams.A)) tag = 'A:';
+    else if(full.includes(teams.B)) tag = 'B:';
+    // Récupère annonce + symbole atout (ex: "100 ♠" ou "Capot annoncé ♠")
+    // On coupe aux "—" et garde la 1ère partie
+    const parts = full.split('—').map(s => s.trim());
+    let head = parts[0]; // "100 ♠" OU "Capot annoncé ♠" OU "Capot non annoncé ♠"
+    // Ajoute " · coinché" s'il y a "coinché" dans le texte
+    const coinche = /coinché/.test(full) ? ' · coinché' : '';
+    return (tag ? tag : '') + head.replace(/\s+/g,' ') + coinche;
+  }
+
   function render(){
     applyTeamNames();
     const {a,b} = totals();
@@ -191,14 +224,17 @@
     els.barA.style.width = Math.min(100, Math.round(100*a/TARGET))+'%';
     els.barB.style.width = Math.min(100, Math.round(100*b/TARGET))+'%';
 
+    const isMobile = window.matchMedia('(max-width: 480px)').matches;
+
     els.tblBody.innerHTML = '';
     let sa=0,sb=0;
     state.rounds.forEach((r,i)=>{
       sa+=r.a; sb+=r.b;
+      const detailsText = isMobile ? compactDetails(r.details, state.teams) : r.details;
       const tr=document.createElement('tr');
       tr.innerHTML=`
         <td>${i+1}</td>
-        <td>${r.details}</td>
+        <td><span class="details" title="${r.details}">${detailsText}</span></td>
         <td class="right editable" contenteditable="true" data-i="${i}" data-k="a">${r.a}</td>
         <td class="right editable" contenteditable="true" data-i="${i}" data-k="b">${r.b}</td>
         <td class="right">${sa}</td>
@@ -308,5 +344,3 @@
 </script>
 </body>
 </html>
-
-
