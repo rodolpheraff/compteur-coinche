@@ -7,19 +7,15 @@
 <style>
   :root{
     --bg:#FAF6F2; --card:#FFFFFF; --txt:#24313b; --muted:#6B7A8C; --border:#E9E5E0; --accent:#1f6aa5;
+    --spade:#111827; --club:#111827; --heart:#b91c1c; --diamond:#b91c1c;
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   .wrap{max-width:960px;margin:16px auto;padding:12px}
   h1{font-size:22px;margin:0 0 10px;font-weight:800}
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .row-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-  .stack{display:flex;flex-direction:column;gap:8px}
-  @media (max-width:720px){
-    .row,.row-3,.row-4{grid-template-columns:1fr}
-    h1{font-size:20px}
-  }
+  @media (max-width:720px){ .row,.row-4{grid-template-columns:1fr} h1{font-size:20px} }
   label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
   input[type="text"],input[type="number"],select{
     width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;
@@ -44,7 +40,12 @@
   .right{text-align:right}
   .editable{outline:1px dashed transparent}
   .editable:focus{outline-color:var(--accent); background:#f5f9fc}
-  .tag{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc;margin-left:6px}
+  .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc;margin-left:6px}
+  .suit{font-weight:900}
+  .s-spade{color:var(--spade)}
+  .s-club{color:var(--club)}
+  .s-heart{color:var(--heart)}
+  .s-diamond{color:var(--diamond)}
   .hint{font-size:12px;color:var(--muted)}
   .scroll-x{overflow:auto;-webkit-overflow-scrolling:touch}
   .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#e8f2fb;color:#0a3f73;font-weight:700;font-size:12px}
@@ -54,7 +55,7 @@
 <div class="wrap">
   <h1>Belote et boules</h1>
 
-  <!-- Réglages équipes -->
+  <!-- Noms d'équipes -->
   <div class="card">
     <div class="row">
       <div>
@@ -85,7 +86,7 @@
     </div>
   </div>
 
-  <!-- Étape 1 : prise & annonce -->
+  <!-- Étape 1 : preneur & annonce -->
   <div class="card">
     <div class="row-4">
       <div>
@@ -102,8 +103,6 @@
           <option value="♥">♥ Cœur</option>
           <option value="♦">♦ Carreau</option>
           <option value="♣">♣ Trèfle</option>
-          <option value="SA">Sans atout</option>
-          <option value="TA">Tout atout</option>
         </select>
       </div>
       <div>
@@ -128,7 +127,7 @@
     </div>
   </div>
 
-  <!-- Étape 2 : saisie des points -->
+  <!-- Étape 2 : points faits -->
   <div class="card">
     <div class="row">
       <div>
@@ -140,10 +139,8 @@
       </div>
     </div>
     <div class="hint" style="margin-top:6px">
-      Arrondi à la dizaine sur les points de <strong>défense</strong> quand le contrat est réussi (ex. 35→40, 34→30).
-      Capot non annoncé si points faits ≥160 et annonce &lt;160 → 250 + annonce (×2 si coinché).
-      Capot annoncé (annonce=160) : réussi = 500 (×2 si coinché), sinon défense = 250×mul + 160.
-      Chute normale coinchée : défense = annonce×mul + 160.
+      Défense arrondie à la dizaine si contrat <em>réussi</em> (35→40, 34→30). Capot non annoncé si points ≥160 et annonce &lt;160 → 250 + annonce (×2 si coinché).
+      Capot annoncé (annonce=160) : réussi = 500 (×2 si coinché), sinon défense = 250×mul + 160. Chute normale coinchée : défense = annonce×mul + 160.
     </div>
   </div>
 
@@ -182,7 +179,7 @@
     tblBody: $('#tbl tbody'), winner: $('#winner')
   };
   const TARGET = 2000;
-  const KEY = 'coinche_mobile_v1';
+  const KEY = 'coinche_mobile_v2';
   const state = { teams:{A:'Équipe A', B:'Équipe B'}, rounds:[], current:null };
 
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -190,9 +187,17 @@
     try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
       if(s.teams) state.teams=s.teams;
       if(Array.isArray(s.rounds)) state.rounds=s.rounds;
-      if(s.current) state.current=null; // on ne restaure pas une donne en cours
     }catch(e){}
   }
+
+  // Suit helpers
+  function suitClass(sym){
+    if(sym==='♠') return 's-spade';
+    if(sym==='♥') return 's-heart';
+    if(sym==='♦') return 's-diamond';
+    return 's-club'; // ♣
+  }
+  function suitSpan(sym){ return `<span class="suit ${suitClass(sym)}">${sym}</span>`; }
 
   function applyTeamNames(){
     els.teamA.value = state.teams.A; els.teamB.value = state.teams.B;
@@ -258,7 +263,7 @@
     const annonce=clamp(els.annonce.value,80,160);
     if(!annonce){ alert('Entre une annonce valide (80–160).'); return; }
     state.current = {pr, suit, mul, annonce, prName: state.teams[pr]};
-    els.currentTxt.textContent = `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}`;
+    els.currentTxt.innerHTML = `${annonce} ${suitSpan(suit)} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}`;
     els.current.style.display='inline-block';
     els.validate.disabled=false;
     // reset etape 1
@@ -279,29 +284,29 @@
     const annonce=current.annonce;
     const sf=clamp(sfRaw,0,162);
     const tookAll=(sf>=160), success=(sf>=annonce);
-    const prName=current.prName, dfName=state.teams[df];
+    const prName=current.prName;
     let a=0,b=0,details='';
 
     if(annonce>=160){
       if(tookAll){ const pts=500*mul; if(pr==='A')a=pts; else b=pts;
-        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+        details=`Capot annoncé ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
       }else{ const pts=250*mul + 160; if(df==='A')a=pts; else b=pts;
-        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+        details=`Capot annoncé ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
       }
     }else if(tookAll){
       const pts=(250 + annonce) * mul; if(pr==='A')a=pts; else b=pts;
-      details=`Capot non annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      details=`Capot non annoncé ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else if(success){
       // preneur = (annonce + sf)×mul ; défense = arrondi10(162 - sf)
       const prPts=(annonce + sf)*mul;
       const defPts = round10(162 - sf);
       if(pr==='A'){ a=prPts; b=defPts; } else { b=prPts; a=defPts; }
-      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      details=`${annonce} ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else{
       // chute : défense = annonce×mul + 160 (sans arrondi)
       const defPts=annonce*mul + 160;
       if(df==='A'){ a=defPts; } else { b=defPts; }
-      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      details=`${annonce} ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }
     return {a,b,details};
   }
