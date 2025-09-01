@@ -47,7 +47,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Compteur Coinche – 2000 points</h1>
+  <h1>Belote et boules</h1>
 
   <!-- Réglages équipes -->
   <div class="card">
@@ -60,9 +60,6 @@
         <label>Nom Équipe B</label>
         <input id="teamB" type="text" placeholder="Équipe B">
       </div>
-    </div>
-    <div class="hint" style="margin-top:6px">Les noms sont sauvegardés sur l’appareil (localStorage).</div>
-  </div>
 
   <!-- Scores -->
   <div class="card">
@@ -131,12 +128,6 @@
       <div style="align-self:end">
         <button class="btn primary" id="validate" disabled>Valider les scores</button>
       </div>
-    </div>
-    <div class="hint" style="margin-top:6px">
-      Arrondi à la dizaine sur les points de <strong>défense</strong> quand le contrat est réussi (ex. 35→40, 34→30).
-      Capot non annoncé si points faits ≥160 et annonce &lt;160 → 250 + annonce (×2 si coinché).
-      Capot annoncé (annonce=160) : réussi = 500 (×2 si coinché), sinon défense = 250×mul + 160.
-      Chute normale coinchée : défense = annonce×mul + 160.
     </div>
   </div>
 
@@ -327,3 +318,4 @@
 </script>
 </body>
 </html>
+
