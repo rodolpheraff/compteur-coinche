@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Compteur Coinche – 2000 points</title>
+<title>Compteur Coinche – 2000 points (mobile)</title>
 <style>
   :root{
     --bg:#FAF6F2; --card:#FFFFFF; --txt:#24313b; --muted:#6B7A8C; --border:#E9E5E0; --accent:#1f6aa5;
@@ -13,8 +13,13 @@
   h1{font-size:22px;margin:0 0 10px;font-weight:800}
   .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .row-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-  @media (max-width:720px){ .row,.row-4{grid-template-columns:1fr} h1{font-size:20px} }
+  .stack{display:flex;flex-direction:column;gap:8px}
+  @media (max-width:720px){
+    .row,.row-3,.row-4{grid-template-columns:1fr}
+    h1{font-size:20px}
+  }
   label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
   input[type="text"],input[type="number"],select{
     width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;
@@ -97,6 +102,8 @@
           <option value="♥">♥ Cœur</option>
           <option value="♦">♦ Carreau</option>
           <option value="♣">♣ Trèfle</option>
+          <option value="SA">Sans atout</option>
+          <option value="TA">Tout atout</option>
         </select>
       </div>
       <div>
@@ -132,6 +139,13 @@
         <button class="btn primary" id="validate" disabled>Valider les scores</button>
       </div>
     </div>
+    <div class="hint" style="margin-top:6px">
+      Arrondi à la dizaine sur les points de <strong>défense</strong> quand le contrat est réussi (ex. 35→40, 34→30).
+      Capot non annoncé si points faits ≥160 et annonce &lt;160 → 250 + annonce (×2 si coinché).
+      Capot annoncé (annonce=160) : réussi = 500 (×2 si coinché), sinon défense = 250×mul + 160.
+      Chute normale coinchée : défense = annonce×mul + 160.
+    </div>
+  </div>
 
   <!-- Historique -->
   <div class="card">
@@ -173,11 +187,10 @@
 
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
   function load(){
-    try{
-      const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
+    try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
       if(s.teams) state.teams=s.teams;
       if(Array.isArray(s.rounds)) state.rounds=s.rounds;
-      state.current=null; // on ne restaure pas une donne en cours
+      if(s.current) state.current=null; // on ne restaure pas une donne en cours
     }catch(e){}
   }
 
@@ -266,7 +279,7 @@
     const annonce=current.annonce;
     const sf=clamp(sfRaw,0,162);
     const tookAll=(sf>=160), success=(sf>=annonce);
-    const prName=current.prName;
+    const prName=current.prName, dfName=state.teams[df];
     let a=0,b=0,details='';
 
     if(annonce>=160){
