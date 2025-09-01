@@ -2,54 +2,52 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Compteur Coinche – 2000 points</title>
 <style>
   :root{
-    --bg:#FAF6F2; --card:#FFFFFF; --txt:#24313b; --muted:#6B7A8C; --border:#E9E5E0; --accent:#1f6aa5;
+    --bg:#FAF6F2; --card:#FFFFFF; --txt:#2B3640; --muted:#6B7A8C; --border:#E9E5E0; --accent:#466781;
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
-  .wrap{max-width:960px;margin:16px auto;padding:12px}
-  h1{font-size:22px;margin:0 0 10px;font-weight:800}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .wrap{max-width:880px;margin:24px auto;padding:16px}
+  h1{font-size:22px;margin:0 0 12px;font-weight:800}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
   .row-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-  @media (max-width:720px){ .row,.row-4{grid-template-columns:1fr} h1{font-size:20px} }
+  @media (max-width:720px){ .row,.row-3,.row-4{grid-template-columns:1fr} }
   label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
   input[type="text"],input[type="number"],select{
     width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;
-    padding:12px 12px;font-size:16px;color:var(--txt);outline:none
+    padding:10px 12px;font-size:15px;color:var(--txt);outline:none
   }
-  input[type="number"]{appearance:textfield}
-  .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:12px;padding:12px 14px;
-       font-weight:700;cursor:pointer;font-size:16px}
+  .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;
+       font-weight:700;cursor:pointer}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-  .btn.danger{background:#c14c4c;border-color:#c14c4c;color:#fff}
-  .btn.ghost{background:#fff}
-  .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .scorebox{border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;background:#fff}
-  .scorebox h3{margin:0 0 2px;font-size:14px;color:#3a4a58}
-  .score{font-size:34px;font-weight:900;letter-spacing:.3px}
-  .progress{height:10px;background:#efeae4;border-radius:999px;overflow:hidden;margin-top:8px}
+  .btn.danger{background:#b94747;border-color:#b94747;color:#fff}
+  .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .scorebox{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
+  .scorebox h3{margin:0 0 4px;font-size:14px;color:#3a4a58}
+  .score{font-size:30px;font-weight:800}
+  .progress{height:8px;background:#ece7e1;border-radius:999px;overflow:hidden;margin-top:8px}
   .bar{height:100%;background:var(--accent);width:0%}
-  table{width:100%;border-collapse:collapse;min-width:600px}
-  th,td{border-bottom:1px solid var(--border);padding:10px 8px;font-size:14px}
-  th{background:#f7f4f0;text-align:left;color:#354556;position:sticky;top:0}
+  table{width:100%;border-collapse:collapse;min-width:620px}
+  th,td{border-bottom:1px solid var(--border);padding:10px;font-size:14px}
+  th{background:#f7f4f0;text-align:left;color:#354556}
   tr:hover td{background:#faf9f7}
   .right{text-align:right}
   .editable{outline:1px dashed transparent}
   .editable:focus{outline-color:var(--accent); background:#f5f9fc}
-  .tag{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc;margin-left:6px}
   .hint{font-size:12px;color:var(--muted)}
-  .scroll-x{overflow:auto;-webkit-overflow-scrolling:touch}
-  .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#e8f2fb;color:#0a3f73;font-weight:700;font-size:12px}
+  .scroll{overflow:auto;-webkit-overflow-scrolling:touch}
+  .pill{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Belote et boules</h1>
+  <h1>Compteur Coinche – 2000 points</h1>
 
-  <!-- Réglages équipes -->
+  <!-- Noms des équipes -->
   <div class="card">
     <div class="row">
       <div>
@@ -60,6 +58,9 @@
         <label>Nom Équipe B</label>
         <input id="teamB" type="text" placeholder="Équipe B">
       </div>
+    </div>
+    <div class="hint" style="margin-top:6px">Les noms sont sauvegardés localement (localStorage).</div>
+  </div>
 
   <!-- Scores -->
   <div class="card">
@@ -108,17 +109,13 @@
         <input id="annonce" type="number" inputmode="numeric" min="80" max="160" step="10" placeholder="ex. 100">
       </div>
     </div>
-    <div style="margin-top:10px">
+    <div style="margin-top:8px">
       <button class="btn primary" id="start">Démarrer la donne</button>
-    </div>
-    <div id="current" style="margin-top:10px; display:none">
-      <span class="badge">Donne en cours</span>
-      <span class="tag" id="currentTxt"></span>
-      <button class="btn ghost" id="cancel" style="margin-left:8px">Annuler</button>
+      <span id="current" style="display:none;margin-left:8px" class="pill">Donne en cours · <span id="currentTxt"></span> <button class="btn" id="cancel" style="margin-left:8px">Annuler</button></span>
     </div>
   </div>
 
-  <!-- Étape 2 : saisie des points -->
+  <!-- Étape 2 : points faits -->
   <div class="card">
     <div class="row">
       <div>
@@ -129,11 +126,15 @@
         <button class="btn primary" id="validate" disabled>Valider les scores</button>
       </div>
     </div>
+    <div class="hint" style="margin-top:6px">
+      Défense arrondie à la dizaine si contrat réussi (35→40, 34→30). Capot non annoncé : points ≥160 & annonce &lt;160 → 250 + annonce (×2 si coinché).
+      Capot annoncé (annonce=160) : réussi = 500 (×2 si coinché), sinon défense = 250×mul + 160. Chute : défense = annonce×mul + 160.
+    </div>
   </div>
 
   <!-- Historique -->
   <div class="card">
-    <div class="scroll-x">
+    <div class="scroll">
       <table id="tbl">
         <thead>
           <tr>
@@ -166,16 +167,14 @@
     tblBody: $('#tbl tbody'), winner: $('#winner')
   };
   const TARGET = 2000;
-  const KEY = 'coinche_mobile_v1';
+  const KEY = 'coinche_clean_v1';
   const state = { teams:{A:'Équipe A', B:'Équipe B'}, rounds:[], current:null };
 
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
   function load(){
-    try{
-      const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
+    try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
       if(s.teams) state.teams=s.teams;
       if(Array.isArray(s.rounds)) state.rounds=s.rounds;
-      state.current=null; // on ne restaure pas une donne en cours
     }catch(e){}
   }
 
@@ -184,7 +183,6 @@
     els.nameA.textContent = state.teams.A; els.nameB.textContent = state.teams.B;
     els.thA.textContent = state.teams.A; els.thB.textContent = state.teams.B;
     els.sumA.textContent = state.teams.A; els.sumB.textContent = state.teams.B;
-    // options preneur (libellé)
     els.preneur.querySelector('option[value="A"]').textContent = state.teams.A;
     els.preneur.querySelector('option[value="B"]').textContent = state.teams.B;
   }
@@ -214,7 +212,7 @@
       els.tblBody.appendChild(tr);
     });
 
-    // inline edit (+A / +B)
+    // inline edit
     els.tblBody.querySelectorAll('[contenteditable]').forEach(cell=>{
       cell.addEventListener('blur', ()=>{
         const i=parseInt(cell.dataset.i,10), k=cell.dataset.k;
@@ -228,10 +226,10 @@
       btn.onclick=()=>{ state.rounds.splice(parseInt(btn.dataset.del,10),1); save(); render(); };
     });
 
-    // fin de partie
+    // winner
     els.winner.textContent='';
     if(a>=TARGET || b>=TARGET){
-      els.winner.innerHTML = `<span class="badge">Fin</span> ${a===b?'Égalité':(a>b?state.teams.A:state.teams.B)+' gagne'} (${a}–${b})`;
+      els.winner.textContent = (a===b?'Égalité':'Victoire '+(a>b?state.teams.A:state.teams.B)) + ` (${a}–${b})`;
     }
   }
 
@@ -243,10 +241,10 @@
     const annonce=clamp(els.annonce.value,80,160);
     if(!annonce){ alert('Entre une annonce valide (80–160).'); return; }
     state.current = {pr, suit, mul, annonce, prName: state.teams[pr]};
-    els.currentTxt.textContent = `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}`;
     els.current.style.display='inline-block';
+    els.currentTxt.textContent = `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}`;
     els.validate.disabled=false;
-    // reset etape 1
+    // reset étape 1
     els.preneur.value='A'; els.suit.value='♠'; els.coinche.value='1'; els.annonce.value='';
     save(); render();
   }
@@ -258,13 +256,12 @@
     save();
   }
 
-  function computeRound(current, sfRaw){
-    const pr=current.pr, df=(pr==='A'?'B':'A');
-    const suit=current.suit, mul=current.mul;
-    const annonce=current.annonce;
+  function computeRound(cur, sfRaw){
+    const pr=cur.pr, df=(pr==='A'?'B':'A');
+    const mul=cur.mul, annonce=cur.annonce, suit=cur.suit;
     const sf=clamp(sfRaw,0,162);
     const tookAll=(sf>=160), success=(sf>=annonce);
-    const prName=current.prName;
+    const prName=cur.prName;
     let a=0,b=0,details='';
 
     if(annonce>=160){
@@ -277,13 +274,11 @@
       const pts=(250 + annonce) * mul; if(pr==='A')a=pts; else b=pts;
       details=`Capot non annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else if(success){
-      // preneur = (annonce + sf)×mul ; défense = arrondi10(162 - sf)
       const prPts=(annonce + sf)*mul;
       const defPts = round10(162 - sf);
       if(pr==='A'){ a=prPts; b=defPts; } else { b=prPts; a=defPts; }
       details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else{
-      // chute : défense = annonce×mul + 160 (sans arrondi)
       const defPts=annonce*mul + 160;
       if(df==='A'){ a=defPts; } else { b=defPts; }
       details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
@@ -297,7 +292,7 @@
     if(sf===''){ alert('Entre les points faits par le preneur.'); return; }
     const r = computeRound(state.current, sf);
     state.rounds.push(r);
-    // reset étape 2 et bannière
+    // reset étape 2 + bannière
     state.current=null;
     els.current.style.display='none';
     els.validate.disabled=true;
@@ -306,8 +301,8 @@
   }
 
   // Bindings
-  els.teamA.addEventListener('input', ()=>{ state.teams.A = els.teamA.value.trim()||'Équipe A'; save(); render(); });
-  els.teamB.addEventListener('input', ()=>{ state.teams.B = els.teamB.value.trim()||'Équipe B'; save(); render(); });
+  els.teamA.addEventListener('input', ()=>{ state.teams.A=els.teamA.value.trim()||'Équipe A'; save(); render(); });
+  els.teamB.addEventListener('input', ()=>{ state.teams.B=els.teamB.value.trim()||'Équipe B'; save(); render(); });
   els.start.addEventListener('click', startHand);
   els.cancel.addEventListener('click', cancelHand);
   els.validate.addEventListener('click', addRound);
@@ -318,4 +313,3 @@
 </script>
 </body>
 </html>
-
