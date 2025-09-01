@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Compteur Coinche – 2000 points (sans annonces, sans belote)</title>
+<style>
+  :root{
+    --bg:#FAF6F2; --card:#FFFFFF; --txt:#2B3640; --muted:#6B7A8C; --border:#E9E5E0; --accent:#466781;
+  }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:860px;margin:24px auto;padding:16px}
+  h1{font-size:22px;margin:0 0 12px;font-weight:800}
+  .sub{color:var(--muted);margin-bottom:20px;font-size:14px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .col{flex:1 1 200px}
+  label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+  input[type="text"],input[type="number"],select{
+    width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;font-size:15px;color:var(--txt);outline:none
+  }
+  input[type="number"]{appearance:textfield}
+  .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:999px;padding:10px 14px;
+       font-weight:600;cursor:pointer}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.danger{background:#b94747;border-color:#b94747;color:#fff}
+  .btn.ghost{background:#fff;color:var(--txt)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .pill{display:inline-block;padding:6px 10px;border:1px solid var(--border);border-radius:999px;font-size:13px;color:var(--muted)}
+  .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+  .scorebox{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
+  .scorebox h3{margin:0 0 4px;font-size:16px}
+  .score{font-size:28px;font-weight:800}
+  .progress{height:8px;background:#ece7e1;border-radius:999px;overflow:hidden;margin-top:8px}
+  .bar{height:100%;background:var(--accent);width:0%}
+  .badge{display:inline-block;background:#eef3f7;color:#254155;font-weight:700;font-size:12px;padding:4px 8px;border-radius:999px}
+  table{width:100%;border-collapse:collapse}
+  th,td{border-bottom:1px solid var(--border);padding:10px;font-size:14px}
+  th{background:#f7f4f0;text-align:left;color:#354556}
+  tr:hover td{background:#faf9f7}
+  .right{text-align:right}
+  .hint{font-size:12px;color:var(--muted)}
+  .mode-toggle{display:flex;gap:8px;flex-wrap:wrap}
+  .mode-toggle .btn{border-radius:10px}
+  .win{color:#0a7d40;font-weight:700}
+  .lost{color:#b94747;font-weight:700}
+  .footer{font-size:12px;color:var(--muted);margin-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Compteur Coinche – 2000 points</h1>
+  <div class="sub">Règles de ce compteur : <span class="pill">sans annonces</span> <span class="pill">belote/rebelote non comptées</span> <span class="pill">objectif 2000</span></div>
+
+  <!-- ÉQUIPES & OBJECTIF -->
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label>Équipe A</label>
+        <input id="teamA" type="text" value="Nous">
+      </div>
+      <div class="col">
+        <label>Équipe B</label>
+        <input id="teamB" type="text" value="Eux">
+      </div>
+      <div class="col">
+        <label>Objectif (points)</label>
+        <input id="target" type="number" min="500" step="50" value="2000">
+      </div>
+    </div>
+    <div class="scores">
+      <div class="scorebox">
+        <h3 id="nameA">Nous</h3>
+        <div class="score" id="scoreA">0</div>
+        <div class="progress"><div class="bar" id="barA"></div></div>
+      </div>
+      <div class="scorebox">
+        <h3 id="nameB">Eux</h3>
+        <div class="score" id="scoreB">0</div>
+        <div class="progress"><div class="bar" id="barB"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAISIE MANCHE -->
+  <div class="card">
+    <div class="row" style="align-items:flex-end">
+      <div class="col">
+        <label>Mode de saisie</label>
+        <div class="mode-toggle">
+          <button class="btn ghost" id="modeSimpleBtn">Simple (points de plis 0–162)</button>
+          <button class="btn ghost" id="modeContratBtn">Contrat (enchère / coinche)</button>
+        </div>
+        <div class="hint">Tu peux changer de mode à tout moment. Les manches déjà saisies restent telles quelles.</div>
+      </div>
+    </div>
+
+    <!-- MODE SIMPLE -->
+    <div id="modeSimple" style="margin-top:10px;display:none">
+      <div class="row">
+        <div class="col">
+          <label>Points pris par <span id="labelTeamSimple">l'équipe preneuse</span> (0–162)</label>
+          <input id="ptsA" type="number" min="0" max="162" step="1" value="0">
+          <div class="hint">Pas d'annonces, pas de belote. Total d’une donne = 162.</div>
+        </div>
+        <div class="col">
+          <label>Preneur</label>
+          <select id="simplePreneur">
+            <option value="A">Équipe A</option>
+            <option value="B">Équipe B</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Coinche / Surcoinche</label>
+          <select id="simpleMul">
+            <option value="1">Aucune</option>
+            <option value="2">Coinchée (×2)</option>
+            <option value="4">Surcoinchée (×4)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <button class="btn primary" id="addSimple">Ajouter la manche</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODE CONTRAT -->
+    <div id="modeContrat" style="margin-top:10px;display:none">
+      <div class="row">
+        <div class="col">
+          <label>Contrat (80 à 160, Capot=250)</label>
+          <input id="contrat" type="number" min="80" step="10" value="100">
+          <div class="hint">Contrat standard (sans annonces). Capot (tous les plis) = 250.</div>
+        </div>
+        <div class="col">
+          <label>Preneur</label>
+          <select id="contratPreneur">
+            <option value="A">Équipe A</option>
+            <option value="B">Équipe B</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Coinche / Surcoinche</label>
+          <select id="mul">
+            <option value="1">Aucune</option>
+            <option value="2">Coinchée (×2)</option>
+            <option value="4">Surcoinchée (×4)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <label>Contrat réussi ?</label>
+          <select id="success">
+            <option value="yes">Oui</option>
+            <option value="no">Non (chute)</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Chute (si non) — points défensifs</label>
+          <input id="defPts" type="number" min="0" max="162" step="1" value="0">
+          <div class="hint">Optionnel : si tu veux récompenser la défense par leurs points de plis (0–162). Sinon laisse à 0.</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div class="col">
+          <button class="btn primary" id="addContrat">Ajouter la manche</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIQUE -->
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div><strong>Historique des manches</strong></div>
+      <div class="row" style="gap:8px">
+        <button class="btn ghost" id="exportCsv">Exporter CSV</button>
+        <button class="btn danger" id="resetAll">Réinitialiser</button>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:6px">Astuce : clique sur la corbeille d’une ligne pour supprimer la manche.</div>
+    <div style="overflow:auto;margin-top:8px">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Détails</th>
+            <th class="right">+A</th>
+            <th class="right">+B</th>
+            <th class="right">ΣA</th>
+            <th class="right">ΣB</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="winner" style="margin-top:10px"></div>
+  </div>
+
+  <div class="footer">Fichier autonome. Tes données restent sur ton appareil (localStorage).</div>
+</div>
+
+<script>
+(function(){
+  const el = sel => document.querySelector(sel);
+  const els = sel => Array.from(document.querySelectorAll(sel));
+
+  const S = {
+    teamA: el('#teamA'),
+    teamB: el('#teamB'),
+    nameA: el('#nameA'),
+    nameB: el('#nameB'),
+    target: el('#target'),
+    scoreA: el('#scoreA'),
+    scoreB: el('#scoreB'),
+    barA: el('#barA'),
+    barB: el('#barB'),
+    modeSimpleBtn: el('#modeSimpleBtn'),
+    modeContratBtn: el('#modeContratBtn'),
+    modeSimple: el('#modeSimple'),
+    modeContrat: el('#modeContrat'),
+    // Simple
+    ptsA: el('#ptsA'),
+    simplePreneur: el('#simplePreneur'),
+    simpleMul: el('#simpleMul'),
+    addSimple: el('#addSimple'),
+    // Contrat
+    contrat: el('#contrat'),
+    contratPreneur: el('#contratPreneur'),
+    mul: el('#mul'),
+    success: el('#success'),
+    defPts: el('#defPts'),
+    addContrat: el('#addContrat'),
+    // Table
+    tblBody: el('#tbl tbody'),
+    exportCsv: el('#exportCsv'),
+    resetAll: el('#resetAll'),
+    winner: el('#winner')
+  };
+
+  const state = {
+    teams: {A:'Nous', B:'Eux'},
+    target: 2000,
+    rounds: [], // {mode:'simple'|'contrat', a:+, b:+, note:string}
+  };
+
+  // —— Persistence
+  const KEY = 'coinche_compteur_v1';
+  function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+  function load(){
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return;
+    try{
+      const s = JSON.parse(raw);
+      if(s.teams) state.teams = s.teams;
+      if(s.target) state.target = s.target;
+      if(Array.isArray(s.rounds)) state.rounds = s.rounds;
+    }catch(e){}
+  }
+
+  // —— UI Bind
+  function applyHeader(){
+    S.teamA.value = state.teams.A;
+    S.teamB.value = state.teams.B;
+    S.nameA.textContent = state.teams.A;
+    S.nameB.textContent = state.teams.B;
+    S.target.value = state.target;
+  }
+
+  function totals(){
+    let a = 0, b = 0;
+    for(const r of state.rounds){ a += r.a; b += r.b; }
+    return {a,b};
+  }
+
+  function fmt(n){ return n.toString(); }
+
+  function render(){
+    applyHeader();
+    const {a,b} = totals();
+    S.scoreA.textContent = fmt(a);
+    S.scoreB.textContent = fmt(b);
+    const tgt = Math.max(1, state.target);
+    S.barA.style.width = Math.min(100, Math.round(100*a/tgt)) + '%';
+    S.barB.style.width = Math.min(100, Math.round(100*b/tgt)) + '%';
+
+    // Table
+    S.tblBody.innerHTML = '';
+    let ca = 0, cb = 0;
+    state.rounds.forEach((r,i)=>{
+      ca += r.a; cb += r.b;
+      const tr = document.createElement('tr');
+      const tdIdx = document.createElement('td'); tdIdx.textContent = (i+1);
+      const tdNote = document.createElement('td'); tdNote.innerHTML = r.note;
+      const tdA = document.createElement('td'); tdA.className='right'; tdA.textContent = '+'+fmt(r.a);
+      const tdB = document.createElement('td'); tdB.className='right'; tdB.textContent = '+'+fmt(r.b);
+      const tdSA = document.createElement('td'); tdSA.className='right'; tdSA.textContent = fmt(ca);
+      const tdSB = document.createElement('td'); tdSB.className='right'; tdSB.textContent = fmt(cb);
+      const tdDel = document.createElement('td');
+      const del = document.createElement('button'); del.className='btn danger'; del.textContent='🗑';
+      del.onclick = ()=>{ state.rounds.splice(i,1); save(); render(); };
+      tdDel.appendChild(del);
+      tr.append(tdIdx, tdNote, tdA, tdB, tdSA, tdSB, tdDel);
+      S.tblBody.appendChild(tr);
+    });
+
+    // Winner
+    S.winner.innerHTML = '';
+    if (a >= state.target || b >= state.target){
+      const winner = (a===b) ? 'Égalité' : (a>b ? state.teams.A : state.teams.B);
+      S.winner.innerHTML = `<span class="badge">Fin de partie</span> &nbsp; 
+        <span class="${a===b?'':(a>b?'win':'lost')}">
+          ${winner === 'Égalité' ? 'Égalité à ' + a + ' – ' + b : winner + ' gagne ('+a+'–'+b+')'}
+        </span>`;
+    }
+  }
+
+  // —— Mode toggle
+  function setMode(m){
+    if(m==='simple'){
+      S.modeSimple.style.display='block';
+      S.modeContrat.style.display='none';
+      S.modeSimpleBtn.classList.add('primary'); S.modeContratBtn.classList.remove('primary');
+    }else{
+      S.modeSimple.style.display='none';
+      S.modeContrat.style.display='block';
+      S.modeContratBtn.classList.add('primary'); S.modeSimpleBtn.classList.remove('primary');
+    }
+  }
+
+  // —— Add round: MODE SIMPLE
+  S.addSimple.addEventListener('click', ()=>{
+    const pr = S.simplePreneur.value; // 'A' or 'B'
+    const mul = parseInt(S.simpleMul.value,10);
+    let aPlis = parseInt(S.ptsA.value||'0',10);
+    if (isNaN(aPlis) || aPlis<0) aPlis=0;
+    if (aPlis>162) aPlis=162;
+
+    // Ici, on ne compte que les points de plis (0–162) et on applique le multiplicateur AU PRENEUR si réussite.
+    // Hypothèse simple : si preneur=A, alors "aPlis" sont les points de A. Sinon ils sont pour B.
+    let a=0,b=0, note='';
+    if (pr==='A'){
+      a = aPlis; b = 162 - aPlis;
+      // multiplicateur informatif seulement (on n'a pas de notion de réussite stricte en mode simple)
+      if (mul>1) { a = Math.round(a*mul); b = Math.round(b); note = `<strong>Simple</strong> — Preneur ${state.teams.A}, ${aPlis} / 162, ${mul===2?'coinchée ×2':'surcoinchée ×4'}`; }
+      else note = `<strong>Simple</strong> — Preneur ${state.teams.A}, ${aPlis} / 162`;
+    }else{
+      b = aPlis; a = 162 - aPlis;
+      if (mul>1) { b = Math.round(b*mul); a = Math.round(a); note = `<strong>Simple</strong> — Preneur ${state.teams.B}, ${aPlis} / 162, ${mul===2?'coinchée ×2':'surcoinchée ×4'}`; }
+      else note = `<strong>Simple</strong> — Preneur ${state.teams.B}, ${aPlis} / 162`;
+    }
+
+    state.rounds.push({mode:'simple', a, b, note});
+    save(); render();
+    S.ptsA.value = '0';
+  });
+
+  // —— Add round: MODE CONTRAT
+  S.addContrat.addEventListener('click', ()=>{
+    let c = parseInt(S.contrat.value||'0',10);
+    if (isNaN(c)||c<80) c=80;
+    let mul = parseInt(S.mul.value,10);
+    let pr = S.contratPreneur.value;
+    let ok = (S.success.value==='yes');
+    let defPts = parseInt(S.defPts.value||'0',10); if (isNaN(defPts)||defPts<0) defPts=0; if (defPts>162) defPts=162;
+
+    // Convention choisie (classique, simplifiée, sans annonces, sans belote) :
+    // - Si réussite : le preneur marque Contrat × multiplicateur, la défense 0.
+    // - Si chute : la défense marque max(162 ou defPts) × multiplicateur (au choix: on prend defPts si renseigné, sinon 162),
+    //              le preneur 0.
+    // - Capot saisi comme 250.
+    let a=0,b=0, note='';
+    const contratTxt = (c===250?'Capot=250':c.toString());
+    const mulTxt = (mul===1?'':(mul===2?' (coinchée ×2)':' (surcoinchée ×4)'));
+
+    if(ok){
+      const pts = c*mul;
+      if(pr==='A'){ a = pts; b = 0; note = `<strong>Contrat</strong> — ${state.teams.A} ${contratTxt}${mulTxt} <span class="win">réussi</span>`; }
+      else        { b = pts; a = 0; note = `<strong>Contrat</strong> — ${state.teams.B} ${contratTxt}${mulTxt} <span class="win">réussi</span>`; }
+    }else{
+      const baseDef = defPts>0? defPts : 162;
+      const pts = baseDef*mul;
+      if(pr==='A'){ a = 0; b = pts; note = `<strong>Contrat</strong> — ${state.teams.A} ${contratTxt}${mulTxt} <span class="lost">chute</span> → défense ${state.teams.B} +${pts}`; }
+      else        { b = 0; a = pts; note = `<strong>Contrat</strong> — ${state.teams.B} ${contratTxt}${mulTxt} <span class="lost">chute</span> → défense ${state.teams.A} +${pts}`; }
+    }
+
+    state.rounds.push({mode:'contrat', a, b, note});
+    save(); render();
+  });
+
+  // —— Export CSV
+  S.exportCsv.addEventListener('click', ()=>{
+    const rows = [];
+    rows.push(['#','details','+A','+B','ΣA','ΣB']);
+    let sa=0,sb=0;
+    state.rounds.forEach((r,i)=>{ sa+=r.a; sb+=r.b; rows.push([i+1, r.note.replace(/<[^>]+>/g,''), r.a, r.b, sa, sb]); });
+    const csv = rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='coinche_scores.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  });
+
+  // —— Reset
+  S.resetAll.addEventListener('click', ()=>{
+    if(!confirm('Réinitialiser la partie ?')) return;
+    state.rounds = [];
+    save(); render();
+  });
+
+  // —— Inputs bindings
+  S.teamA.addEventListener('input', ()=>{ state.teams.A = S.teamA.value.trim()||'Nous'; S.nameA.textContent = state.teams.A; save(); render(); });
+  S.teamB.addEventListener('input', ()=>{ state.teams.B = S.teamB.value.trim()||'Eux'; S.nameB.textContent = state.teams.B; save(); render(); });
+  S.target.addEventListener('input', ()=>{ const v = parseInt(S.target.value||'2000',10); state.target = isNaN(v)?2000:Math.max(100,v); save(); render(); });
+
+  // —— Mode buttons
+  S.modeSimpleBtn.addEventListener('click', ()=>setMode('simple'));
+  S.modeContratBtn.addEventListener('click', ()=>setMode('contrat'));
+
+  // Init
+  load();
+  applyHeader();
+  render();
+  setMode('simple'); // défaut
+})();
+</script>
+</body>
+</html>
