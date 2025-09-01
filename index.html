@@ -3,11 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Compteur Coinche – 2000 points (mobile)</title>
+<title>Compteur Coinche – 2000 points</title>
 <style>
   :root{
     --bg:#FAF6F2; --card:#FFFFFF; --txt:#24313b; --muted:#6B7A8C; --border:#E9E5E0; --accent:#1f6aa5;
-    --spade:#111827; --club:#111827; --heart:#b91c1c; --diamond:#b91c1c;
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
   .wrap{max-width:960px;margin:16px auto;padding:12px}
@@ -40,12 +39,7 @@
   .right{text-align:right}
   .editable{outline:1px dashed transparent}
   .editable:focus{outline-color:var(--accent); background:#f5f9fc}
-  .tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc;margin-left:6px}
-  .suit{font-weight:900}
-  .s-spade{color:var(--spade)}
-  .s-club{color:var(--club)}
-  .s-heart{color:var(--heart)}
-  .s-diamond{color:var(--diamond)}
+  .tag{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc;margin-left:6px}
   .hint{font-size:12px;color:var(--muted)}
   .scroll-x{overflow:auto;-webkit-overflow-scrolling:touch}
   .badge{display:inline-block;padding:4px 10px;border-radius:999px;background:#e8f2fb;color:#0a3f73;font-weight:700;font-size:12px}
@@ -55,7 +49,7 @@
 <div class="wrap">
   <h1>Belote et boules</h1>
 
-  <!-- Noms d'équipes -->
+  <!-- Réglages équipes -->
   <div class="card">
     <div class="row">
       <div>
@@ -86,7 +80,7 @@
     </div>
   </div>
 
-  <!-- Étape 1 : preneur & annonce -->
+  <!-- Étape 1 : prise & annonce -->
   <div class="card">
     <div class="row-4">
       <div>
@@ -127,7 +121,7 @@
     </div>
   </div>
 
-  <!-- Étape 2 : points faits -->
+  <!-- Étape 2 : saisie des points -->
   <div class="card">
     <div class="row">
       <div>
@@ -138,11 +132,6 @@
         <button class="btn primary" id="validate" disabled>Valider les scores</button>
       </div>
     </div>
-    <div class="hint" style="margin-top:6px">
-      Défense arrondie à la dizaine si contrat <em>réussi</em> (35→40, 34→30). Capot non annoncé si points ≥160 et annonce &lt;160 → 250 + annonce (×2 si coinché).
-      Capot annoncé (annonce=160) : réussi = 500 (×2 si coinché), sinon défense = 250×mul + 160. Chute normale coinchée : défense = annonce×mul + 160.
-    </div>
-  </div>
 
   <!-- Historique -->
   <div class="card">
@@ -179,25 +168,18 @@
     tblBody: $('#tbl tbody'), winner: $('#winner')
   };
   const TARGET = 2000;
-  const KEY = 'coinche_mobile_v2';
+  const KEY = 'coinche_mobile_v1';
   const state = { teams:{A:'Équipe A', B:'Équipe B'}, rounds:[], current:null };
 
   function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
   function load(){
-    try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
+    try{
+      const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
       if(s.teams) state.teams=s.teams;
       if(Array.isArray(s.rounds)) state.rounds=s.rounds;
+      state.current=null; // on ne restaure pas une donne en cours
     }catch(e){}
   }
-
-  // Suit helpers
-  function suitClass(sym){
-    if(sym==='♠') return 's-spade';
-    if(sym==='♥') return 's-heart';
-    if(sym==='♦') return 's-diamond';
-    return 's-club'; // ♣
-  }
-  function suitSpan(sym){ return `<span class="suit ${suitClass(sym)}">${sym}</span>`; }
 
   function applyTeamNames(){
     els.teamA.value = state.teams.A; els.teamB.value = state.teams.B;
@@ -263,7 +245,7 @@
     const annonce=clamp(els.annonce.value,80,160);
     if(!annonce){ alert('Entre une annonce valide (80–160).'); return; }
     state.current = {pr, suit, mul, annonce, prName: state.teams[pr]};
-    els.currentTxt.innerHTML = `${annonce} ${suitSpan(suit)} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}`;
+    els.currentTxt.textContent = `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}`;
     els.current.style.display='inline-block';
     els.validate.disabled=false;
     // reset etape 1
@@ -289,24 +271,24 @@
 
     if(annonce>=160){
       if(tookAll){ const pts=500*mul; if(pr==='A')a=pts; else b=pts;
-        details=`Capot annoncé ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
+        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
       }else{ const pts=250*mul + 160; if(df==='A')a=pts; else b=pts;
-        details=`Capot annoncé ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
+        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
       }
     }else if(tookAll){
       const pts=(250 + annonce) * mul; if(pr==='A')a=pts; else b=pts;
-      details=`Capot non annoncé ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      details=`Capot non annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else if(success){
       // preneur = (annonce + sf)×mul ; défense = arrondi10(162 - sf)
       const prPts=(annonce + sf)*mul;
       const defPts = round10(162 - sf);
       if(pr==='A'){ a=prPts; b=defPts; } else { b=prPts; a=defPts; }
-      details=`${annonce} ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }else{
       // chute : défense = annonce×mul + 160 (sans arrondi)
       const defPts=annonce*mul + 160;
       if(df==='A'){ a=defPts; } else { b=defPts; }
-      details=`${annonce} ${suitSpan(suit)} — Preneur ${prName}${mul>1?' — coinché':''}`;
+      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
     }
     return {a,b,details};
   }
