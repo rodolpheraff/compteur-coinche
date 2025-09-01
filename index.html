@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compteur Coinche – 2000 points</title>
+<title>Compteur Coinche – 2000 points (flux 2 étapes)</title>
 <style>
   :root{
     --bg:#FAF6F2; --card:#FFFFFF; --txt:#2B3640; --muted:#6B7A8C; --border:#E9E5E0; --accent:#466781;
   }
   html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
-  .wrap{max-width:880px;margin:24px auto;padding:16px}
+  .wrap{max-width:920px;margin:24px auto;padding:16px}
   h1{font-size:22px;margin:0 0 12px;font-weight:800}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 6px 18px rgba(0,0,0,.06)}
   .row{display:flex;gap:10px;flex-wrap:wrap}
@@ -23,6 +23,7 @@
        font-weight:600;cursor:pointer}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.danger{background:#b94747;border-color:#b94747;color:#fff}
+  .btn.ghost{background:#fff;color:var(--txt)}
   .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
   .scorebox{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
   .scorebox h3{margin:0 0 4px;font-size:16px}
@@ -36,6 +37,7 @@
   .right{text-align:right}
   .editable{outline:1px dashed transparent}
   .editable:focus{outline-color:var(--accent); background:#f5f9fc}
+  .tag{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc;margin-left:6px}
 </style>
 </head>
 <body>
@@ -58,7 +60,7 @@
     </div>
   </div>
 
-  <!-- SAISIE MANCHE -->
+  <!-- ETAPE 1 : PRISE & ANNONCE -->
   <div class="card">
     <div class="row">
       <div class="col">
@@ -86,22 +88,30 @@
           <option value="2">Coinchée (×2)</option>
         </select>
       </div>
-    </div>
-
-    <div class="row">
       <div class="col">
         <label>Annonce (80–160)</label>
         <input id="annonce" type="number" min="80" max="160" step="10" placeholder="ex. 100">
       </div>
+      <div class="col" style="align-self:end">
+        <button class="btn primary" id="start">Démarrer la donne</button>
+      </div>
+    </div>
+    <div id="current" style="margin-top:8px; display:none">
+      <strong>Donne en cours :</strong>
+      <span class="tag" id="currentTxt"></span>
+      <button class="btn ghost" id="cancel" style="margin-left:8px">Annuler</button>
+    </div>
+  </div>
+
+  <!-- ETAPE 2 : SCORES -->
+  <div class="card">
+    <div class="row">
       <div class="col">
         <label>Points faits par le preneur (0–162)</label>
         <input id="scoreFait" type="number" min="0" max="162" placeholder="ex. 82">
       </div>
-    </div>
-
-    <div class="row" style="margin-top:8px">
-      <div class="col">
-        <button class="btn primary" id="add">Ajouter la manche</button>
+      <div class="col" style="align-self:end">
+        <button class="btn primary" id="validate" disabled>Valider les scores</button>
       </div>
     </div>
   </div>
@@ -113,7 +123,7 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Détails</th>
+            <th>Détails (contrat + couleur + preneur)</th>
             <th class="right">+A</th>
             <th class="right">+B</th>
             <th class="right">ΣA</th>
@@ -131,24 +141,86 @@
 <script>
 (function(){
   const $ = s => document.querySelector(s);
-  const S = {
+  const TARGET = 2000;
+  const state = { rounds:[], current:null };
+
+  const els = {
     scoreA: $('#scoreA'), scoreB: $('#scoreB'),
     barA: $('#barA'), barB: $('#barB'),
-    preneur: $('#preneur'), suit: $('#suit'),
-    coinche: $('#coinche'), annonce: $('#annonce'), scoreFait: $('#scoreFait'),
-    add: $('#add'),
+    preneur: $('#preneur'), suit: $('#suit'), coinche: $('#coinche'), annonce: $('#annonce'),
+    start: $('#start'), current: $('#current'), currentTxt: $('#currentTxt'), cancel: $('#cancel'),
+    scoreFait: $('#scoreFait'), validate: $('#validate'),
     tblBody: $('#tbl tbody'), winner: $('#winner')
   };
-  const TARGET = 2000;
-  const state = { rounds:[] };
+
+  function clamp(n,min,max){ n=Number(n)||0; return Math.max(min, Math.min(max, n)); }
+
+  function startHand(){
+    const pr=els.preneur.value, suit=els.suit.value, mul=parseInt(els.coinche.value,10)||1;
+    const annonce=clamp(els.annonce.value,80,160);
+    if(!annonce){ alert('Entre une annonce (80–160).'); return; }
+    state.current = {pr, suit, mul, annonce};
+    els.currentTxt.textContent = `${annonce} ${suit} — Preneur ${pr==='A'?'Équipe A':'Équipe B'}${mul>1?' — coinché':''}`;
+    els.current.style.display='block';
+    els.validate.disabled=false;
+    els.preneur.value='A'; els.suit.value='♠'; els.coinche.value='1'; els.annonce.value='';
+  }
+
+  function cancelHand(){
+    state.current=null;
+    els.current.style.display='none';
+    els.validate.disabled=true;
+  }
+
+  function computeRound(current, sfRaw){
+    const pr=current.pr, df=(pr==='A'?'B':'A');
+    const suit=current.suit, mul=current.mul;
+    const annonce=current.annonce;
+    const sf=clamp(sfRaw,0,162);
+    const tookAll=(sf>=160); const success=(sf>=annonce);
+    let a=0,b=0,details='';
+    if(annonce>=160){
+      if(tookAll){ const pts=500*mul; if(pr==='A')a=pts; else b=pts;
+        details=`Capot annoncé ${suit} — Preneur ${pr==='A'?'Équipe A':'Équipe B'}${mul>1?' — coinché':''}`;
+      }else{ const pts=250*mul + 160; if(df==='A')a=pts; else b=pts;
+        details=`Capot annoncé ${suit} — Preneur ${pr==='A'?'Équipe A':'Équipe B'}${mul>1?' — coinché':''}`;
+      }
+    }else if(tookAll){
+      const pts=(250+annonce)*mul; if(pr==='A')a=pts; else b=pts;
+      details=`Capot non annoncé ${suit} — Preneur ${pr==='A'?'Équipe A':'Équipe B'}${mul>1?' — coinché':''}`;
+    }else if(success){
+      const prPts=(annonce+sf)*mul, defPts=162-sf;
+      if(pr==='A'){ a=prPts; b=defPts; } else { b=prPts; a=defPts; }
+      details=`${annonce} ${suit} — Preneur ${pr==='A'?'Équipe A':'Équipe B'}${mul>1?' — coinché':''}`;
+    }else{
+      const defPts=annonce*mul+160;
+      if(df==='A'){ a=defPts; } else { b=defPts; }
+      details=`${annonce} ${suit} — Preneur ${pr==='A'?'Équipe A':'Équipe B'}${mul>1?' — coinché':''}`;
+    }
+    return {a,b,details};
+  }
+
+  function addRound(){
+    if(!state.current){ alert('Commence par définir la prise et l’annonce (Étape 1).'); return; }
+    const sf=els.scoreFait.value;
+    if(sf===''){ alert('Entre les points faits par le preneur.'); return; }
+    const r=computeRound(state.current, sf);
+    state.rounds.push(r);
+    state.current=null;
+    els.current.style.display='none';
+    els.validate.disabled=true;
+    els.scoreFait.value='';
+    render();
+  }
 
   function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
+
   function render(){
-    const {a,b}=totals(); 
-    S.scoreA.textContent=a; S.scoreB.textContent=b;
-    S.barA.style.width=Math.min(100,Math.round(100*a/TARGET))+'%';
-    S.barB.style.width=Math.min(100,Math.round(100*b/TARGET))+'%';
-    S.tblBody.innerHTML=''; let sa=0,sb=0;
+    const {a,b}=totals();
+    els.scoreA.textContent=a; els.scoreB.textContent=b;
+    els.barA.style.width=Math.min(100,Math.round(100*a/TARGET))+'%';
+    els.barB.style.width=Math.min(100,Math.round(100*b/TARGET))+'%';
+    els.tblBody.innerHTML=''; let sa=0,sb=0;
     state.rounds.forEach((r,i)=>{
       sa+=r.a; sb+=r.b;
       const tr=document.createElement('tr');
@@ -160,56 +232,29 @@
         <td class="right">${sa}</td>
         <td class="right">${sb}</td>
         <td><button class="btn danger" data-del="${i}">🗑</button></td>`;
-      S.tblBody.appendChild(tr);
+      els.tblBody.appendChild(tr);
     });
-    S.tblBody.querySelectorAll('[contenteditable]').forEach(cell=>{
+    els.tblBody.querySelectorAll('[contenteditable]').forEach(cell=>{
       cell.addEventListener('blur', ()=>{
         const i=parseInt(cell.dataset.i,10), k=cell.dataset.k;
-        let v=parseInt(cell.textContent.trim(),10);
-        if(isNaN(v)||v<0) v=0;
-        state.rounds[i][k]=v;
-        render();
+        let v=parseInt(cell.textContent.trim(),10); if(isNaN(v)||v<0) v=0;
+        state.rounds[i][k]=v; render();
       });
-      cell.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); cell.blur(); }});
+      cell.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); cell.blur(); } });
     });
-    S.tblBody.querySelectorAll('button[data-del]').forEach(btn=>{
+    els.tblBody.querySelectorAll('button[data-del]').forEach(btn=>{
       btn.onclick=()=>{ state.rounds.splice(parseInt(btn.dataset.del,10),1); render(); };
     });
-    S.winner.textContent='';
+    els.winner.textContent='';
     if(a>=TARGET || b>=TARGET){
-      S.winner.textContent=(a===b?'Égalité':'Victoire '+(a>b?'Équipe A':'Équipe B'))+` (${a}–${b})`;
+      els.winner.textContent=(a===b?'Égalité':'Victoire '+(a>b?'Équipe A':'Équipe B'))+` (${a}–${b})`;
     }
   }
-  function clamp(n,min,max){ n=Number(n)||0; return Math.max(min,Math.min(max,n)); }
-  function computeRound(){
-    const pr=S.preneur.value, df=(pr==='A'?'B':'A');
-    const suit=S.suit.value, mul=parseInt(S.coinche.value,10)||1;
-    const annonce=clamp(S.annonce.value,80,160);
-    const sf=clamp(S.scoreFait.value,0,162);
-    const prName=(pr==='A'?'Équipe A':'Équipe B');
-    const tookAll=(sf>=160); const success=(sf>=annonce);
-    let a=0,b=0,details='';
-    if(annonce>=160){
-      if(tookAll){ const pts=500*mul; if(pr==='A')a=pts; else b=pts;
-        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
-      }else{ const pts=250*mul+160; if(df==='A')a=pts; else b=pts;
-        details=`Capot annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
-      }
-    }else if(tookAll){
-      const pts=(250+annonce)*mul; if(pr==='A')a=pts; else b=pts;
-      details=`Capot non annoncé ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
-    }else if(success){
-      const prPts=(annonce+sf)*mul, defPts=162-sf;
-      if(pr==='A'){a=prPts; b=defPts;} else {b=prPts; a=defPts;}
-      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
-    }else{
-      const defPts=annonce*mul+160; if(df==='A')a=defPts; else b=defPts;
-      details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
-    }
-    return {a,b,details};
-  }
-  function resetInputs(){ S.preneur.value='A'; S.suit.value='♠'; S.coinche.value='1'; S.annonce.value=''; S.scoreFait.value=''; }
-  S.add.addEventListener('click',()=>{ const r=computeRound(); state.rounds.push(r); render(); resetInputs(); });
+
+  els.start.addEventListener('click', startHand);
+  els.cancel.addEventListener('click', cancelHand);
+  els.validate.addEventListener('click', addRound);
+
   render();
 })();
 </script>
