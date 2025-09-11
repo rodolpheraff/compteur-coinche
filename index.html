@@ -13,48 +13,93 @@
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .row-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
     .row-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .row-players{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     @media (max-width:720px){ .row,.row-3,.row-4{grid-template-columns:1fr} }
     label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
-    input[type="text"],input[type="number"],select{width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:15px;color:var(--txt);outline:none}
+    .hint{font-size:12px;color:var(--muted)}
+    input[type="text"],input[type="number"],select{width:100%;box-sizing:border-box;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:15px;color:#2B3640;outline:none}
     .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
     .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
     .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+    .btn.ghost{background:transparent}
     .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
     .scorebox{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
     .scorebox h3{margin:0 0 4px;font-size:14px;color:#3a4a58}
     .score{font-size:30px;font-weight:800}
     .progress{height:8px;background:#ece7e1;border-radius:999px;overflow:hidden;margin-top:8px}
     .bar{height:100%;background:var(--accent);width:0%}
-    table{width:100%;border-collapse:collapse;min-width:620px}
-    th,td{border-bottom:1px solid var(--border);padding:10px;font-size:14px}
+
+    /* Tableau */
+    table{width:100%;border-collapse:collapse;min-width:720px}
+    th,td{border-bottom:1px solid var(--border);padding:10px;font-size:14px;vertical-align:top}
     th{background:#f7f4f0;text-align:left;color:#354556}
     tr:hover td{background:#faf9f7}
     .right{text-align:right}
     .editable{outline:1px dashed transparent}
     .editable:focus{outline-color:var(--accent); background:#f5f9fc}
-    .hint{font-size:12px;color:var(--muted)}
     .scroll{overflow:auto;-webkit-overflow-scrolling:touch}
     .pill{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc}
+
+    /* Responsive “cartes” pour l’historique */
+    @media (max-width:720px){
+      thead{display:none}
+      table, tbody, tr, td{display:block;width:100%}
+      tr{border:1px solid var(--border);border-radius:12px;background:#fff;margin-bottom:10px;padding:8px}
+      td{border:0;padding:6px 8px}
+      td::before{
+        content:attr(data-label);
+        display:block;
+        font-size:12px;
+        color:var(--muted);
+        margin-bottom:2px;
+      }
+      td.right{text-align:left}
+      .td-actions{margin-top:6px}
+    }
+
+    /* Accordéon */
+    .accordion-summary{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .summary-text{font-size:14px;color:#354556}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Compteur Coinchée — 2000 points</h1>
+    <h1>Belote et Boules</h1>
 
-    <!-- Noms des équipes + joueurs -->
-    <div class="card">
-      <div class="row">
-        <div>
-          <label>Nom Équipe A</label>
-          <input id="teamA" type="text" placeholder="Équipe A">
-          <label style="margin-top:8px">Joueurs A (séparés par des virgules)</label>
-          <input id="playersA" type="text" placeholder="ex. Alice, Bob">
+    <!-- ÉQUIPES & JOUEURS (accordéon) -->
+    <div class="card" id="teamsCard">
+      <div id="teamsContent">
+        <div class="row">
+          <div>
+            <label>Équipe A</label>
+            <input id="teamA" type="text" placeholder="Équipe A">
+            <label style="margin-top:8px">Joueurs Équipe A</label>
+            <div class="row-players">
+              <input id="playersA1" type="text" placeholder="A1 (ex. Alice)">
+              <input id="playersA2" type="text" placeholder="A2 (ex. Bob)">
+            </div>
+          </div>
+          <div>
+            <label>Équipe B</label>
+            <input id="teamB" type="text" placeholder="Équipe B">
+            <label style="margin-top:8px">Joueurs Équipe B</label>
+            <div class="row-players">
+              <input id="playersB1" type="text" placeholder="B1 (ex. Chloé)">
+              <input id="playersB2" type="text" placeholder="B2 (ex. David)">
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Nom Équipe B</label>
-          <input id="teamB" type="text" placeholder="Équipe B">
-          <label style="margin-top:8px">Joueurs B (séparés par des virgules)</label>
-          <input id="playersB" type="text" placeholder="ex. Chloé, David">
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn primary" id="teamsSaveHide">Enregistrer & masquer</button>
+        </div>
+      </div>
+
+      <div id="teamsSummary" style="display:none">
+        <div class="accordion-summary">
+          <div class="summary-text" id="teamsSummaryTxt">—</div>
+          <div>
+            <button class="btn" id="teamsEdit">Modifier</button>
+          </div>
         </div>
       </div>
     </div>
@@ -81,13 +126,16 @@
         <div>
           <label>Preneur</label>
           <select id="preneur">
+            <option value="">— Sélectionner —</option>
             <option value="A">Équipe A</option>
             <option value="B">Équipe B</option>
           </select>
+          <div class="hint" id="preneurTeamName" style="margin-top:6px">Équipe : —</div>
         </div>
         <div>
           <label>Couleur (atout)</label>
           <select id="suit">
+            <option value="">— Sélectionner —</option>
             <option value="♠">♠ Pique</option>
             <option value="♥">♥ Cœur</option>
             <option value="♦">♦ Carreau</option>
@@ -97,22 +145,22 @@
         <div>
           <label>Coinche</label>
           <select id="coinche">
-            <option value="1">Aucune (×1)</option>
-            <option value="2">Coinchée (×2)</option>
+            <option value="1">Aucune</option>
+            <option value="2">Coinchée</option>
           </select>
         </div>
         <div>
           <label>Annonce (80–160)</label>
-          <input id="annonce" type="number" inputmode="numeric" min="0" max="160" step="10" value="0" placeholder="ex. 100">
+          <input id="annonce" type="number" inputmode="numeric" min="80" max="160" step="10" placeholder="ex. 100">
         </div>
       </div>
       <div class="row" style="margin-top:10px">
         <div>
-          <label>Partant (qui commence la donne)</label>
-          <select id="starter"><option value="">—</option></select>
+          <label>Départ</label>
+          <select id="starter"><option value="">— Sélectionner —</option></select>
         </div>
         <div style="align-self:end">
-          <button class="btn primary" id="start">Démarrer la donne</button>
+          <button class="btn primary" id="start" disabled>Démarrer la donne</button>
           <span id="current" style="display:none;margin-left:8px" class="pill">
             Donne en cours · <span id="currentTxt"></span>
             <button class="btn" id="cancel" style="margin-left:8px">Annuler</button>
@@ -125,7 +173,7 @@
     <div class="card">
       <div class="row">
         <div>
-          <label>Points faits par le preneur (0–160)</label>
+          <label>Points faits (0–160)</label>
           <input id="scoreFait" type="number" inputmode="numeric" min="0" max="160" placeholder="ex. 100">
         </div>
         <div style="align-self:end">
@@ -142,6 +190,7 @@
             <tr>
               <th>#</th>
               <th>Détails</th>
+              <th>Départ</th>
               <th class="right" id="thA">A</th>
               <th class="right" id="thB">B</th>
               <th class="right" id="sumA">A</th>
@@ -158,7 +207,6 @@
     <!-- Purge totale / reset -->
     <div class="card">
       <button class="btn danger" id="purgeAll">Remettre à zéro & purger le cache</button>
-      <div class="hint" style="margin-top:6px">Efface les scores, noms, joueurs et préférences enregistrés dans ce navigateur.</div>
     </div>
   </div>
 
@@ -167,48 +215,118 @@
       const $ = s => document.querySelector(s);
       const TARGET = 2000;
       const KEY = 'coinche_clean_v2';
+
       const els = {
-        teamA: $('#teamA'), teamB: $('#teamB'), nameA: $('#nameA'), nameB: $('#nameB'),
-        playersA: $('#playersA'), playersB: $('#playersB'),
+        // Teams card / accordion
+        teamsContent: $('#teamsContent'),
+        teamsSummary: $('#teamsSummary'),
+        teamsSummaryTxt: $('#teamsSummaryTxt'),
+        teamsSaveHide: $('#teamsSaveHide'),
+        teamsEdit: $('#teamsEdit'),
+
+        teamA: $('#teamA'), teamB: $('#teamB'),
+        nameA: $('#nameA'), nameB: $('#nameB'),
+        playersA1: $('#playersA1'), playersA2: $('#playersA2'),
+        playersB1: $('#playersB1'), playersB2: $('#playersB2'),
+
         thA: $('#thA'), thB: $('#thB'), sumA: $('#sumA'), sumB: $('#sumB'),
         scoreA: $('#scoreA'), scoreB: $('#scoreB'), barA: $('#barA'), barB: $('#barB'),
-        preneur: $('#preneur'), suit: $('#suit'), coinche: $('#coinche'), annonce: $('#annonce'), starter: $('#starter'),
+        preneur: $('#preneur'), suit: $('#suit'), coinche: $('#coinche'), annonce: $('#annonce'),
+        starter: $('#starter'),
         start: $('#start'), current: $('#current'), currentTxt: $('#currentTxt'), cancel: $('#cancel'),
         scoreFait: $('#scoreFait'), validate: $('#validate'),
         tblBody: $('#tbl tbody'), winner: $('#winner'),
-        purgeAll: $('#purgeAll')
+        purgeAll: $('#purgeAll'),
+        preneurTeamName: $('#preneurTeamName')
       };
 
-      const state = { teams:{A:'Équipe A', B:'Équipe B'}, players:{A:[],B:[]}, rounds:[], current:null };
+      const state = {
+        teams:{A:'Équipe A', B:'Équipe B'},
+        players:{A:['',''], B:['','']},
+        rounds:[], // {a,b,details,starter}
+        current:null,
+        ui:{ teamsCollapsed:false }
+      };
 
       function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
       function load(){
-        try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(!s) return;
-          if(s.teams) state.teams=s.teams;
-          if(s.players) state.players=s.players;
-          if(Array.isArray(s.rounds)) state.rounds=s.rounds;
+        try{
+          const s = JSON.parse(localStorage.getItem(KEY)||'null');
+          if(!s) return;
+          if(s.teams) state.teams = s.teams;
+
+          // Migration ancien format joueurs
+          if(s.players){
+            const norm = teamArr => {
+              if(Array.isArray(teamArr)) return [(teamArr[0]||'').toString(), (teamArr[1]||'').toString()];
+              if(typeof teamArr === 'string'){
+                const parts = teamArr.split(',').map(x=>x.trim()).filter(Boolean);
+                return [parts[0]||'', parts[1]||''];
+              }
+              return ['',''];
+            };
+            state.players.A = norm(s.players.A);
+            state.players.B = norm(s.players.B);
+          }
+          if(Array.isArray(s.rounds)){
+            state.rounds = s.rounds.map(r=>({starter:('starter' in r)? r.starter : '', ...r}));
+          }
+          if(s.ui && typeof s.ui.teamsCollapsed === 'boolean'){
+            state.ui.teamsCollapsed = s.ui.teamsCollapsed;
+          }
         }catch(e){}
+      }
+
+      /* ------- UI helpers ------- */
+      function refreshPreneurLabels(){
+        els.preneur.querySelector('option[value="A"]').textContent = state.teams.A || 'Équipe A';
+        els.preneur.querySelector('option[value="B"]').textContent = state.teams.B || 'Équipe B';
+        const t = els.preneur.value;
+        els.preneurTeamName.textContent = 'Équipe : ' + (t==='A' ? (state.teams.A||'—') : t==='B' ? (state.teams.B||'—') : '—');
+      }
+
+      function refreshStarterOptions(){
+        const t = els.preneur.value; // 'A' / 'B' / ''
+        const list = (t==='A'||t==='B') ? (state.players[t]||[]).filter(Boolean) : [];
+        const opts = [''].concat(list).map(n=>`<option value="${n}">${n||'— Sélectionner —'}</option>`).join('');
+        els.starter.innerHTML = opts;
       }
 
       function applyTeamNames(){
         els.teamA.value = state.teams.A; els.teamB.value = state.teams.B;
-        els.playersA.value = state.players.A.join(', ');
-        els.playersB.value = state.players.B.join(', ');
+
+        els.playersA1.value = state.players.A[0]||'';
+        els.playersA2.value = state.players.A[1]||'';
+        els.playersB1.value = state.players.B[0]||'';
+        els.playersB2.value = state.players.B[1]||'';
+
         els.nameA.textContent = state.teams.A; els.nameB.textContent = state.teams.B;
         els.thA.textContent = state.teams.A; els.thB.textContent = state.teams.B;
         els.sumA.textContent = state.teams.A; els.sumB.textContent = state.teams.B;
-        els.preneur.querySelector('option[value="A"]').textContent = state.teams.A;
-        els.preneur.querySelector('option[value="B"]').textContent = state.teams.B;
-        // Remplit le sélecteur « Partant »
-        const opts = ['', ...state.players.A, ...state.players.B]
-          .map(n=>`<option value="${n}">${n||'—'}</option>`).join('');
-        els.starter.innerHTML = opts;
+
+        // résumé accordéon
+        els.teamsSummaryTxt.textContent =
+          `${state.teams.A} (${[...state.players.A].filter(Boolean).join(' & ')||'—'})  •  `
+          + `${state.teams.B} (${[...state.players.B].filter(Boolean).join(' & ')||'—'})`;
+
+        refreshPreneurLabels();
+        refreshStarterOptions();
+      }
+
+      function toggleTeams(collapsed){
+        state.ui.teamsCollapsed = collapsed;
+        els.teamsContent.style.display = collapsed ? 'none' : 'block';
+        els.teamsSummary.style.display = collapsed ? 'block' : 'none';
+        save();
       }
 
       function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
 
       function render(){
         applyTeamNames();
+        toggleTeams(state.ui.teamsCollapsed);
+
         const {a,b} = totals();
         els.scoreA.textContent = a; els.scoreB.textContent = b;
         els.barA.style.width = Math.min(100, Math.round(100*a/TARGET))+'%';
@@ -220,13 +338,14 @@
           sa+=r.a; sb+=r.b;
           const tr=document.createElement('tr');
           tr.innerHTML=`
-            <td>${i+1}</td>
-            <td>${r.details}</td>
-            <td class="right editable" contenteditable="true" data-i="${i}" data-k="a">${r.a}</td>
-            <td class="right editable" contenteditable="true" data-i="${i}" data-k="b">${r.b}</td>
-            <td class="right">${sa}</td>
-            <td class="right">${sb}</td>
-            <td><button class="btn danger" data-del="${i}" aria-label="Supprimer">🗑</button></td>`;
+            <td data-label="#">${i+1}</td>
+            <td data-label="Détails">${r.details}</td>
+            <td data-label="Départ">${r.starter||'—'}</td>
+            <td data-label="${state.teams.A}" class="right editable" contenteditable="true" data-i="${i}" data-k="a">${r.a}</td>
+            <td data-label="${state.teams.B}" class="right editable" contenteditable="true" data-i="${i}" data-k="b">${r.b}</td>
+            <td data-label="Cumul ${state.teams.A}" class="right">${sa}</td>
+            <td data-label="Cumul ${state.teams.B}" class="right">${sb}</td>
+            <td data-label="Actions" class="td-actions"><button class="btn danger" data-del="${i}" aria-label="Supprimer">🗑</button></td>`;
           els.tblBody.appendChild(tr);
         });
         // inline edit
@@ -247,24 +366,59 @@
         save();
       }
 
+      /* ------- Validation formulaire Étape 1 ------- */
+      function annonceOK(){
+        const v = parseInt(els.annonce.value,10);
+        return !isNaN(v) && v>=80 && v<=160;
+      }
+      function canStart(){
+        return (els.preneur.value==='A' || els.preneur.value==='B')
+          && (els.suit.value==='♠' || els.suit.value==='♥' || els.suit.value==='♦' || els.suit.value==='♣')
+          && annonceOK()
+          && (els.starter.value.trim().length>0);
+      }
+      function updateStartBtn(){
+        els.start.disabled = !canStart();
+      }
+
+      /* ------- Jeu ------- */
       function startHand(){
+        if(!canStart()){
+          alert('Complète Preneur, Couleur, Annonce (80–160) et Départ avant de démarrer.');
+          return;
+        }
         const pr=els.preneur.value, suit=els.suit.value;
         let mul=parseInt(els.coinche.value,10)||1;
         const annonce=parseInt(els.annonce.value,10)||0;
-        if(annonce<80 || annonce>160){ alert('Entre une annonce valide (80–160).'); return; }
         if(annonce>=160){ mul=1; els.coinche.value='1'; }
+
         const starter = els.starter.value || '';
-        state.current = {pr, suit, mul, annonce, prName: state.teams[pr], starter};
+
+        state.current = {
+          pr, suit, mul, annonce,
+          prName: state.teams[pr],
+          starter
+        };
+
         els.current.style.display='inline-block';
-        els.currentTxt.textContent = `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}${starter? ' — partant '+starter:''}`;
+        // On peut afficher “départ …” dans le chip de suivi (pas dans l’historique)
+        els.currentTxt.textContent =
+          `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}${starter? ' — départ '+starter:''}`;
+
         els.validate.disabled=false;
-        // reset champs
-        els.preneur.value='A'; els.suit.value='♠'; els.coinche.value='1'; els.annonce.value='0'; els.starter.value='';
+
+        // reset champs (met à vide pour forcer re-sélection à la donne suivante)
+        els.preneur.value=''; els.suit.value=''; els.coinche.value='1'; els.annonce.value=''; els.starter.value='';
+        refreshPreneurLabels();
+        refreshStarterOptions();
+        updateStartBtn();
+
         save(); render();
       }
 
       function cancelHand(){ state.current=null; els.current.style.display='none'; els.validate.disabled=true; save(); }
 
+      // Texte Détails sans “départ …”
       function computeRound(cur, sfRaw){
         const pr=cur.pr, df=(pr==='A'?'B':'A');
         const mul=cur.mul, annonce=cur.annonce, suit=cur.suit, starter=cur.starter||'';
@@ -274,28 +428,30 @@
         let a=0,b=0,details='';
 
         if(annonce>=160){
-          if(tookAll){ const pts=500; if(pr==='A')a=pts; else b=pts; // coinche ignorée
-            details=`Capot annoncé ${suit} — Preneur ${prName}${starter? ' — partant '+starter:''}`;
-          }else{ const pts=250 + 160; if(df==='A')a=pts; else b=pts;
-            details=`Capot annoncé ${suit} — Preneur ${prName}${starter? ' — partant '+starter:''}`;
+          if(tookAll){
+            const pts=500; if(pr==='A')a=pts; else b=pts;
+            details=`Capot annoncé ${suit} — Preneur ${prName}`;
+          }else{
+            const pts=250 + 160; if(df==='A')a=pts; else b=pts;
+            details=`Capot annoncé ${suit} — Preneur ${prName}`;
           }
         }else if(tookAll){
-          const pts=250 + annonce; if(pr==='A')a=pts; else b=pts; // pas de coinche sur capot non annoncé
-          details=`Capot non annoncé ${suit} — Preneur ${prName}${starter? ' — partant '+starter:''}`;
+          const pts=250 + annonce; if(pr==='A')a=pts; else b=pts;
+          details=`Capot non annoncé ${suit} — Preneur ${prName}`;
         }else if(success){
           if(mul>1){ const prPts = annonce*2 + 160; if(pr==='A') a=prPts; else b=prPts; }
           else { const prPts = annonce + sf; if(pr==='A') a=prPts; else b=prPts; }
           const defPts = 160 - sf; if(defPts>0){ if(pr==='A') b+=defPts; else a+=defPts; }
-          details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}${starter? ' — partant '+starter:''}`;
+          details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
         }else{
           const defPts=160 + annonce; if(df==='A'){ a=defPts; } else { b=defPts; }
-          details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}${starter? ' — partant '+starter:''}`;
+          details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
         }
-        return {a,b,details};
+        return {a,b,details,starter};
       }
 
       function addRound(){
-        if(!state.current){ alert('Commence par définir la prise, la couleur, le partant et l’annonce (Étape 1).'); return; }
+        if(!state.current){ alert('Commence par définir la donne (Étape 1).'); return; }
         const sf = els.scoreFait.value;
         if(sf===''){ alert('Entre les points faits par le preneur.'); return; }
         const r = computeRound(state.current, sf);
@@ -304,19 +460,58 @@
         save(); render();
       }
 
-      // Bindings
+      /* ------- Bindings ------- */
+      // Accordéon
+      els.teamsSaveHide.addEventListener('click', ()=>{ save(); toggleTeams(true); });
+      els.teamsEdit.addEventListener('click', ()=> toggleTeams(false));
+
+      // Teams / players
       els.teamA.addEventListener('input', ()=>{ state.teams.A=els.teamA.value; save(); render(); });
       els.teamB.addEventListener('input', ()=>{ state.teams.B=els.teamB.value; save(); render(); });
-      els.playersA.addEventListener('input', ()=>{ state.players.A=els.playersA.value.split(',').map(s=>s.trim()).filter(Boolean); save(); render(); });
-      els.playersB.addEventListener('input', ()=>{ state.players.B=els.playersB.value.split(',').map(s=>s.trim()).filter(Boolean); save(); render(); });
-      els.annonce.addEventListener('input', ()=>{ const v=parseInt(els.annonce.value,10)||0; if(v>=160){ els.coinche.value='1'; els.coinche.disabled=true; } else { els.coinche.disabled=false; } });
+
+      const syncPlayers = () => {
+        state.players.A[0] = els.playersA1.value.trim();
+        state.players.A[1] = els.playersA2.value.trim();
+        state.players.B[0] = els.playersB1.value.trim();
+        state.players.B[1] = els.playersB2.value.trim();
+        save();
+        refreshStarterOptions();
+        render();
+      };
+      els.playersA1.addEventListener('input', syncPlayers);
+      els.playersA2.addEventListener('input', syncPlayers);
+      els.playersB1.addEventListener('input', syncPlayers);
+      els.playersB2.addEventListener('input', syncPlayers);
+
+      // Sélection preneur / suit / annonce / starter => active le bouton si OK
+      els.preneur.addEventListener('change', ()=>{ refreshPreneurLabels(); refreshStarterOptions(); updateStartBtn(); });
+      els.suit.addEventListener('change', ()=>{ updateStartBtn(); });
+      els.starter.addEventListener('change', ()=>{ updateStartBtn(); });
+      els.annonce.addEventListener('input', ()=>{
+        // verrou coinche si 160
+        const v=parseInt(els.annonce.value,10)||0;
+        if(v>=160){ els.coinche.value='1'; els.coinche.disabled=true; } else { els.coinche.disabled=false; }
+        updateStartBtn();
+      });
+
+      // Actions donne
       els.start.addEventListener('click', startHand);
       els.cancel.addEventListener('click', cancelHand);
       els.validate.addEventListener('click', addRound);
-      els.purgeAll.addEventListener('click', ()=>{ if(confirm('Tout effacer et purger le cache du compteur ?')){ localStorage.removeItem(KEY); location.reload(); } });
+
+      // Purge
+      els.purgeAll.addEventListener('click', ()=>{
+        if(confirm('Tout effacer et purger le cache du compteur ?')){
+          localStorage.removeItem(KEY); location.reload();
+        }
+      });
 
       // Boot
-      load(); render();
+      load();
+      // Mettre preneur/suit/starter/annonce à vide pour forcer la 1re sélection si un ancien état les avait remplis
+      els.preneur.value=''; els.suit.value=''; els.starter.value=''; els.annonce.value='';
+      refreshPreneurLabels(); refreshStarterOptions(); updateStartBtn();
+      render();
     })();
   </script>
 </body>
