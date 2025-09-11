@@ -97,26 +97,26 @@
       <div id="teamsContent">
         <div class="row">
           <div>
-            <label for="teamA">Nom Équipe A</label>
+            <label for="teamA">Équipe A</label>
             <input id="teamA" type="text" placeholder="Équipe A">
             <label style="margin-top:8px">Joueurs Équipe A</label>
             <div class="row-players">
-              <input id="playersA1" type="text" placeholder="A1 (ex. vico)">
-              <input id="playersA2" type="text" placeholder="A2 (ex. Bob)">
+              <input id="playersA1" type="text" placeholder="Yo, Phif">
+              <input id="playersA2" type="text" placeholder="Po, Djessa">
             </div>
           </div>
           <div>
-            <label for="teamB">Nom Équipe B</label>
+            <label for="teamB">Équipe B</label>
             <input id="teamB" type="text" placeholder="Équipe B">
             <label style="margin-top:8px">Joueurs Équipe B</label>
             <div class="row-players">
-              <input id="playersB1" type="text" placeholder="B1 (ex. Chloé)">
-              <input id="playersB2" type="text" placeholder="B2 (ex. David)">
+              <input id="playersB1" type="text" placeholder="Vico, Antho">
+              <input id="playersB2" type="text" placeholder="Rory">
             </div>
           </div>
         </div>
         <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn primary" id="teamsSaveHide">Enregistrer & masquer</button>
+          <button class="btn primary" id="teamsSaveHide">Enregistrer</button>
         </div>
       </div>
 
@@ -150,18 +150,18 @@
     <div class="card">
       <div class="row-4">
         <div>
-          <label for="preneur">Preneur (équipe)</label>
+          <label for="preneur">Preneur</label>
           <select id="preneur">
-            <option value="">— Sélectionner —</option>
+            <option value="">— preneur —</option>
             <option value="A">Équipe A</option>
             <option value="B">Équipe B</option>
           </select>
           <div class="hint" id="preneurTeamName" style="margin-top:6px">Équipe : —</div>
         </div>
         <div>
-          <label for="suit">Couleur (atout)</label>
+          <label for="suit">Atout</label>
           <select id="suit">
-            <option value="">— Sélectionner —</option>
+            <option value="">— Atout —</option>
             <option value="♠">♠ Pique</option>
             <option value="♥">♥ Cœur</option>
             <option value="♦">♦ Carreau</option>
@@ -171,8 +171,8 @@
         <div>
           <label for="coinche">Coinche</label>
           <select id="coinche">
-            <option value="1">Aucune (×1)</option>
-            <option value="2">Coinchée (×2)</option>
+            <option value="1">Aucune</option>
+            <option value="2">Coinchée</option>
           </select>
         </div>
         <div>
@@ -182,8 +182,8 @@
       </div>
       <div class="row" style="margin-top:10px">
         <div>
-          <label for="starter">Départ (qui commence la donne)</label>
-          <select id="starter"><option value="">— Sélectionner —</option></select>
+          <label for="starter">Qui part?</label>
+          <select id="starter"><option value="">— Qui part? —</option></select>
         </div>
         <div style="align-self:end">
           <button class="btn primary" id="start" disabled>Démarrer la donne</button>
@@ -661,4 +661,3 @@
   </script>
 </body>
 </html>
-
