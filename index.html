@@ -21,7 +21,6 @@
     .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
     .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
     .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
-    .btn.ghost{background:transparent}
     .scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
     .scorebox{border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;background:#fff}
     .scorebox h3{margin:0 0 4px;font-size:14px;color:#3a4a58}
@@ -65,8 +64,6 @@
       }
       .mscores{ margin-left:auto; font-variant-numeric:tabular-nums; font-size:13px }
       .mscores b{ font-weight:800 }
-      .mdelete{ margin-left:auto }
-      .mdelete .btn{ padding:6px 10px }
       .mtotals{
         margin-left:auto;
         font-size:12px;
@@ -75,6 +72,8 @@
         white-space:nowrap;
       }
       .mtotals b{ font-weight:800 }
+      .mdelete{ margin-left:auto }
+      .mdelete .btn{ padding:6px 10px }
     }
 
     /* Accordéon */
@@ -91,7 +90,7 @@
       <div id="teamsContent">
         <div class="row">
           <div>
-            <label>Nom Équipe A</label>
+            <label for="teamA">Nom Équipe A</label>
             <input id="teamA" type="text" placeholder="Équipe A">
             <label style="margin-top:8px">Joueurs Équipe A</label>
             <div class="row-players">
@@ -100,7 +99,7 @@
             </div>
           </div>
           <div>
-            <label>Nom Équipe B</label>
+            <label for="teamB">Nom Équipe B</label>
             <input id="teamB" type="text" placeholder="Équipe B">
             <label style="margin-top:8px">Joueurs Équipe B</label>
             <div class="row-players">
@@ -144,7 +143,7 @@
     <div class="card">
       <div class="row-4">
         <div>
-          <label>Preneur (équipe)</label>
+          <label for="preneur">Preneur (équipe)</label>
           <select id="preneur">
             <option value="">— Sélectionner —</option>
             <option value="A">Équipe A</option>
@@ -153,7 +152,7 @@
           <div class="hint" id="preneurTeamName" style="margin-top:6px">Équipe : —</div>
         </div>
         <div>
-          <label>Couleur (atout)</label>
+          <label for="suit">Couleur (atout)</label>
           <select id="suit">
             <option value="">— Sélectionner —</option>
             <option value="♠">♠ Pique</option>
@@ -163,20 +162,20 @@
           </select>
         </div>
         <div>
-          <label>Coinche</label>
+          <label for="coinche">Coinche</label>
           <select id="coinche">
             <option value="1">Aucune (×1)</option>
             <option value="2">Coinchée (×2)</option>
           </select>
         </div>
         <div>
-          <label>Annonce (80–160)</label>
+          <label for="annonce">Annonce (80–160)</label>
           <input id="annonce" type="number" inputmode="numeric" min="80" max="160" step="10" placeholder="ex. 100">
         </div>
       </div>
       <div class="row" style="margin-top:10px">
         <div>
-          <label>Départ (qui commence la donne)</label>
+          <label for="starter">Départ (qui commence la donne)</label>
           <select id="starter"><option value="">— Sélectionner —</option></select>
         </div>
         <div style="align-self:end">
@@ -193,7 +192,7 @@
     <div class="card">
       <div class="row">
         <div>
-          <label>Points faits par le preneur (0–160)</label>
+          <label for="scoreFait">Points faits par le preneur (0–160)</label>
           <input id="scoreFait" type="number" inputmode="numeric" min="0" max="160" placeholder="ex. 100">
         </div>
         <div style="align-self:end">
@@ -268,7 +267,7 @@
       const state = {
         teams:{A:'Équipe A', B:'Équipe B'},
         players:{A:['',''], B:['','']},
-        rounds:[], // {a,b,details,starter}
+        rounds:[], // {a,b,starter, pr:'A|B', suit:'♠', annonce:100, mul:1|2}
         current:null,
         ui:{ teamsCollapsed:false }
       };
@@ -295,7 +294,9 @@
             state.players.B = norm(s.players.B);
           }
           if(Array.isArray(s.rounds)){
+            // compat: si ancien objet avait details, on migre
             state.rounds = s.rounds.map(r=>({starter:('starter' in r)? r.starter : '', ...r}));
+            migrateOldRounds();
           }
           if(s.ui && typeof s.ui.teamsCollapsed === 'boolean'){
             state.ui.teamsCollapsed = s.ui.teamsCollapsed;
@@ -303,7 +304,7 @@
         }catch(e){}
       }
 
-      /* ------- UI helpers ------- */
+      /* ------- Helpers ------- */
       function refreshPreneurLabels(){
         els.preneur.querySelector('option[value="A"]').textContent = state.teams.A || 'Équipe A';
         els.preneur.querySelector('option[value="B"]').textContent = state.teams.B || 'Équipe B';
@@ -326,7 +327,7 @@
         els.playersB1.value = state.players.B[0]||'';
         els.playersB2.value = state.players.B[1]||'';
 
-        els.nameA.textContent = state.teams.A; els.nameB.textContent = state.teams.B;
+        $('#nameA').textContent = state.teams.A; $('#nameB').textContent = state.teams.B;
         els.thA.textContent = state.teams.A; els.thB.textContent = state.teams.B;
         els.sumA.textContent = state.teams.A; els.sumB.textContent = state.teams.B;
 
@@ -348,20 +349,59 @@
 
       function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
 
+      // -------- Détails dynamiques (noms d'équipe indépendants) --------
+      function detailText(r){
+        const pr = r.pr || '?';
+        const s  = r.suit || '';
+        const an = (typeof r.annonce==='number' && !isNaN(r.annonce)) ? r.annonce : '';
+        const x2 = (r.mul && r.mul>1) ? ' ×2' : '';
+        if(an>=160) return `Capot annoncé ${s} — Preneur ${pr}`;
+        return `${an} ${s}${x2} — Preneur ${pr}`.trim();
+      }
+
+      function migrateOldRounds(){
+        state.rounds = state.rounds.map(r=>{
+          if(r.pr && r.annonce!==undefined && r.suit!==undefined) return r; // déjà au bon format
+          const nr = {...r};
+          const d = (nr.details||'');
+          // preneur
+          if(!nr.pr){
+            if(/Équipe B/.test(d)) nr.pr='B';
+            else if(/Équipe A/.test(d)) nr.pr='A';
+            else nr.pr = '';
+          }
+          // coinche
+          if(nr.mul===undefined) nr.mul = /coinch/i.test(d) ? 2 : 1;
+          // annonce
+          if(nr.annonce===undefined){
+            const m = d.match(/(^|\s)(80|90|100|110|120|130|140|150|160)\s/);
+            nr.annonce = m ? parseInt(m[2],10) : null;
+          }
+          // atout
+          if(nr.suit===undefined){
+            const m = d.match(/[♠♥♦♣]/);
+            nr.suit = m ? m[0] : '';
+          }
+          // on peut dropper l'ancien details (inutile désormais)
+          delete nr.details;
+          return nr;
+        });
+      }
+
       /* ------- Vue mobile compacte ------- */
       function renderMobileHistory(){
-        const wrap = document.getElementById('listMobile');
+        const wrap = els.listMobile;
         if(!wrap) return;
         wrap.innerHTML = '';
         let sa=0, sb=0;
         state.rounds.forEach((r,i)=>{
-          sa += r.a; sb += r.b; // cumuls jusqu’à cette ligne
+          sa += r.a; sb += r.b; // cumuls
           const item = document.createElement('div');
           item.className = 'mitem';
           item.innerHTML = `
             <div class="mrow">
               <div class="midx">#${i+1}</div>
-              <div class="mdetails">${r.details}</div>
+              <div class="mdetails">${detailText(r)}</div>
               <div class="mtotals">ΣA:<b>${sa}</b> • ΣB:<b>${sb}</b></div>
             </div>
             <div class="mrow">
@@ -379,7 +419,6 @@
         });
       }
 
-
       function render(){
         applyTeamNames();
         toggleTeams(state.ui.teamsCollapsed);
@@ -389,6 +428,7 @@
         els.barA.style.width = Math.min(100, Math.round(100*a/TARGET))+'%';
         els.barB.style.width = Math.min(100, Math.round(100*b/TARGET))+'%';
 
+        // desktop table
         els.tblBody.innerHTML = '';
         let sa=0,sb=0;
         state.rounds.forEach((r,i)=>{
@@ -396,7 +436,7 @@
           const tr=document.createElement('tr');
           tr.innerHTML=`
             <td data-label="#">${i+1}</td>
-            <td data-label="Détails">${r.details}</td>
+            <td data-label="Détails">${detailText(r)}</td>
             <td data-label="Départ">${r.starter||'—'}</td>
             <td data-label="${state.teams.A}" class="right editable" contenteditable="true" data-i="${i}" data-k="a">${r.a}</td>
             <td data-label="${state.teams.B}" class="right editable" contenteditable="true" data-i="${i}" data-k="b">${r.b}</td>
@@ -468,7 +508,7 @@
 
         els.validate.disabled=false;
 
-        // reset champs (force re-sélection pour la donne suivante)
+        // reset champs (force re-sélection)
         els.preneur.value=''; els.suit.value=''; els.coinche.value='1'; els.annonce.value=''; els.starter.value='';
         refreshPreneurLabels();
         refreshStarterOptions();
@@ -479,36 +519,28 @@
 
       function cancelHand(){ state.current=null; els.current.style.display='none'; els.validate.disabled=true; save(); }
 
-      // Détails SANS “départ …” (le départ est dans sa colonne dédiée / la carte mobile)
+      // Calcul des points, sans texte figé (on stocke la structure)
       function computeRound(cur, sfRaw){
         const pr=cur.pr, df=(pr==='A'?'B':'A');
         const mul=cur.mul, annonce=cur.annonce, suit=cur.suit, starter=cur.starter||'';
         const sf=Math.max(0, Math.min(160, parseInt(sfRaw,10)||0));
         const tookAll=(sf===160), success=(sf>=annonce);
-        const prName=cur.prName;
-        let a=0,b=0,details='';
+        let a=0,b=0;
 
         if(annonce>=160){
-          if(tookAll){
-            const pts=500; if(pr==='A')a=pts; else b=pts;
-            details=`Capot annoncé ${suit} — Preneur ${prName}`;
-          }else{
-            const pts=250 + 160; if(df==='A')a=pts; else b=pts;
-            details=`Capot annoncé ${suit} — Preneur ${prName}`;
-          }
+          if(tookAll){ const pts=500; if(pr==='A')a=pts; else b=pts; }
+          else       { const pts=250 + 160; if(df==='A')a=pts; else b=pts; }
         }else if(tookAll){
           const pts=250 + annonce; if(pr==='A')a=pts; else b=pts;
-          details=`Capot non annoncé ${suit} — Preneur ${prName}`;
         }else if(success){
           if(mul>1){ const prPts = annonce*2 + 160; if(pr==='A') a=prPts; else b=prPts; }
-          else { const prPts = annonce + sf; if(pr==='A') a=prPts; else b=prPts; }
+          else      { const prPts = annonce + sf;   if(pr==='A') a=prPts; else b=prPts; }
           const defPts = 160 - sf; if(defPts>0){ if(pr==='A') b+=defPts; else a+=defPts; }
-          details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
         }else{
           const defPts=160 + annonce; if(df==='A'){ a=defPts; } else { b=defPts; }
-          details=`${annonce} ${suit} — Preneur ${prName}${mul>1?' — coinché':''}`;
         }
-        return {a,b,details,starter};
+
+        return {a,b,starter, pr, suit, annonce, mul};
       }
 
       function addRound(){
@@ -523,8 +555,8 @@
 
       /* ------- Bindings ------- */
       // Accordéon
-      els.teamsSaveHide.addEventListener('click', ()=>{ save(); toggleTeams(true); });
-      els.teamsEdit.addEventListener('click', ()=> toggleTeams(false));
+      $('#teamsSaveHide').addEventListener('click', ()=>{ save(); toggleTeams(true); });
+      $('#teamsEdit').addEventListener('click', ()=> toggleTeams(false));
 
       // Teams / players
       els.teamA.addEventListener('input', ()=>{ state.teams.A=els.teamA.value; save(); render(); });
@@ -568,7 +600,7 @@
 
       // Boot
       load();
-      // Forcer preneur/suit/starter/annonce à vide au chargement (pour éviter des reliquats d’une session précédente)
+      // Forcer preneur/suit/starter/annonce à vide au chargement
       els.preneur.value=''; els.suit.value=''; els.starter.value=''; els.annonce.value='';
       refreshPreneurLabels(); refreshStarterOptions(); updateStartBtn();
       render();
