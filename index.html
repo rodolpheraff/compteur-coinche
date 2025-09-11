@@ -62,7 +62,10 @@
         display:inline-block; font-size:12px; padding:2px 8px;
         border:1px solid var(--border); border-radius:999px; background:#f7fafc;
       }
-      .mscores{ margin-left:auto; font-variant-numeric:tabular-nums; font-size:13px }
+      .mscores{
+        margin-left:auto; font-variant-numeric:tabular-nums; font-size:13px;
+        cursor:pointer; text-decoration:underline;
+      }
       .mscores b{ font-weight:800 }
       .mtotals{
         margin-left:auto;
@@ -94,7 +97,7 @@
             <input id="teamA" type="text" placeholder="Équipe A">
             <label style="margin-top:8px">Joueurs Équipe A</label>
             <div class="row-players">
-              <input id="playersA1" type="text" placeholder="A1 (ex. Alice)">
+              <input id="playersA1" type="text" placeholder="A1 (ex. rory)">
               <input id="playersA2" type="text" placeholder="A2 (ex. Bob)">
             </div>
           </div>
@@ -305,20 +308,30 @@
       }
 
       /* ------- Helpers ------- */
-      function refreshPreneurLabels(){
-        els.preneur.querySelector('option[value="A"]').textContent = state.teams.A || 'Équipe A';
-        els.preneur.querySelector('option[value="B"]').textContent = state.teams.B || 'Équipe B';
-        const t = els.preneur.value;
-        els.preneurTeamName.textContent = 'Équipe : ' + (t==='A' ? (state.teams.A||'—') : t==='B' ? (state.teams.B||'—') : '—');
+      function teamLabel(key){
+        return (key==='A' || key==='B') ? (state.teams[key] || key) : (key || '');
       }
-
+      function teamShort(key){
+        const n = (state.teams[key] || key || '').toString().trim();
+        if(!n) return key;
+        const init = n.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                     .replace(/[^\p{L}\p{N}\s]/gu,' ')
+                     .split(/\s+/).filter(Boolean).slice(0,2)
+                     .map(w=>w[0].toUpperCase()).join('');
+        return init || key;
+      }
+      function refreshPreneurLabels(){
+        els.preneur.querySelector('option[value="A"]').textContent = teamLabel('A') || 'Équipe A';
+        els.preneur.querySelector('option[value="B"]').textContent = teamLabel('B') || 'Équipe B';
+        const t = els.preneur.value;
+        els.preneurTeamName.textContent = 'Équipe : ' + (t==='A' ? (teamLabel('A')||'—') : t==='B' ? (teamLabel('B')||'—') : '—');
+      }
       function refreshStarterOptions(){
         const t = els.preneur.value; // 'A' / 'B' / ''
         const list = (t==='A'||t==='B') ? (state.players[t]||[]).filter(Boolean) : [];
         const opts = [''].concat(list).map(n=>`<option value="${n}">${n||'— Sélectionner —'}</option>`).join('');
         els.starter.innerHTML = opts;
       }
-
       function applyTeamNames(){
         els.teamA.value = state.teams.A; els.teamB.value = state.teams.B;
 
@@ -339,24 +352,22 @@
         refreshPreneurLabels();
         refreshStarterOptions();
       }
-
       function toggleTeams(collapsed){
         state.ui.teamsCollapsed = collapsed;
         els.teamsContent.style.display = collapsed ? 'none' : 'block';
         els.teamsSummary.style.display = collapsed ? 'block' : 'none';
         save();
       }
-
       function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
 
       // -------- Détails dynamiques (noms d'équipe indépendants) --------
       function detailText(r){
-        const pr = r.pr || '?';
+        const prName = teamLabel(r.pr) || r.pr || '?';
         const s  = r.suit || '';
         const an = (typeof r.annonce==='number' && !isNaN(r.annonce)) ? r.annonce : '';
         const x2 = (r.mul && r.mul>1) ? ' ×2' : '';
-        if(an>=160) return `Capot annoncé ${s} — Preneur ${pr}`;
-        return `${an} ${s}${x2} — Preneur ${pr}`.trim();
+        if(an>=160) return `Capot annoncé ${s} — Preneur ${prName}`;
+        return `${an} ${s}${x2} — Preneur ${prName}`.trim();
       }
 
       function migrateOldRounds(){
@@ -382,18 +393,18 @@
             const m = d.match(/[♠♥♦♣]/);
             nr.suit = m ? m[0] : '';
           }
-          // on peut dropper l'ancien details (inutile désormais)
           delete nr.details;
           return nr;
         });
       }
 
-      /* ------- Vue mobile compacte ------- */
+      /* ------- Vue mobile compacte (édition via prompt) ------- */
       function renderMobileHistory(){
         const wrap = els.listMobile;
         if(!wrap) return;
         wrap.innerHTML = '';
         let sa=0, sb=0;
+        const sA = teamShort('A'), sB = teamShort('B');
         state.rounds.forEach((r,i)=>{
           sa += r.a; sb += r.b; // cumuls
           const item = document.createElement('div');
@@ -402,11 +413,13 @@
             <div class="mrow">
               <div class="midx">#${i+1}</div>
               <div class="mdetails">${detailText(r)}</div>
-              <div class="mtotals">ΣA:<b>${sa}</b> • ΣB:<b>${sb}</b></div>
+              <div class="mtotals">Σ${sA}:<b>${sa}</b> • Σ${sB}:<b>${sb}</b></div>
             </div>
             <div class="mrow">
               <span class="mbadge">${r.starter ? 'Départ: '+r.starter : 'Départ: —'}</span>
-              <span class="mscores">A:<b>+${r.a}</b> • B:<b>+${r.b}</b></span>
+              <span class="mscores" data-i="${i}" title="Modifier les scores de la donne">
+                ${sA}:<b>+${r.a}</b> • ${sB}:<b>+${r.b}</b>
+              </span>
               <span class="mdelete">
                 <button class="btn danger" data-del-mobile="${i}" aria-label="Supprimer">🗑</button>
               </span>
@@ -414,8 +427,29 @@
           `;
           wrap.appendChild(item);
         });
+        // Edition mobile (prompt)
+        wrap.querySelectorAll('.mscores').forEach(el=>{
+          el.onclick = ()=>{
+            const i = parseInt(el.dataset.i,10);
+            const r = state.rounds[i];
+            const aStr = prompt(`Nouveaux points pour ${teamLabel('A')} (donne #${i+1})`, r.a);
+            if(aStr===null) return;
+            const bStr = prompt(`Nouveaux points pour ${teamLabel('B')} (donne #${i+1})`, r.b);
+            if(bStr===null) return;
+            let a = parseInt(aStr,10); let b = parseInt(bStr,10);
+            if(isNaN(a)||a<0) a=0;
+            if(isNaN(b)||b<0) b=0;
+            state.rounds[i].a = a;
+            state.rounds[i].b = b;
+            save(); render();
+          };
+        });
+        // Suppression mobile
         wrap.querySelectorAll('button[data-del-mobile]').forEach(btn=>{
-          btn.onclick = ()=>{ state.rounds.splice(parseInt(btn.dataset.delMobile,10),1); save(); render(); };
+          btn.onclick = ()=>{
+            state.rounds.splice(parseInt(btn.dataset.delMobile,10),1);
+            save(); render();
+          };
         });
       }
 
@@ -463,7 +497,9 @@
 
         // vainqueur
         els.winner.textContent='';
-        if(a>=TARGET || b>=TARGET){ els.winner.textContent = (a===b?'Égalité':'Victoire '+(a>b?state.teams.A:state.teams.B)) + ` (${a}–${b})`; }
+        if(a>=TARGET || b>=TARGET){
+          els.winner.textContent = (a===b?'Égalité':'Victoire '+(a>b?state.teams.A:state.teams.B)) + ` (${a}–${b})`;
+        }
 
         save();
       }
@@ -496,15 +532,11 @@
 
         const starter = els.starter.value || '';
 
-        state.current = {
-          pr, suit, mul, annonce,
-          prName: state.teams[pr],
-          starter
-        };
+        state.current = { pr, suit, mul, annonce, prName: state.teams[pr], starter };
 
         els.current.style.display='inline-block';
         els.currentTxt.textContent =
-          `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}${starter? ' — départ '+starter:''}`;
+          `${annonce} ${suit} — Preneur ${teamLabel(pr)}${mul>1?' — coinché':''}${starter? ' — départ '+starter:''}`;
 
         els.validate.disabled=false;
 
@@ -519,7 +551,7 @@
 
       function cancelHand(){ state.current=null; els.current.style.display='none'; els.validate.disabled=true; save(); }
 
-      // Calcul des points, sans texte figé (on stocke la structure)
+      // Calcul des points (structure propre)
       function computeRound(cur, sfRaw){
         const pr=cur.pr, df=(pr==='A'?'B':'A');
         const mul=cur.mul, annonce=cur.annonce, suit=cur.suit, starter=cur.starter||'';
@@ -600,7 +632,6 @@
 
       // Boot
       load();
-      // Forcer preneur/suit/starter/annonce à vide au chargement
       els.preneur.value=''; els.suit.value=''; els.starter.value=''; els.annonce.value='';
       refreshPreneurLabels(); refreshStarterOptions(); updateStartBtn();
       render();
@@ -608,5 +639,3 @@
   </script>
 </body>
 </html>
-
-
