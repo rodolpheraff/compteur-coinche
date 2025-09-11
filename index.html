@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Belotes et Boules</title>
+  <title>Compteur Coinchée — 2000 points</title>
   <style>
     :root{ --bg:#FAF6F2; --card:#FFFFFF; --txt:#2B3640; --muted:#6B7A8C; --border:#E9E5E0; --accent:#466781; --danger:#b94747; }
     html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial}
@@ -29,7 +29,7 @@
     .progress{height:8px;background:#ece7e1;border-radius:999px;overflow:hidden;margin-top:8px}
     .bar{height:100%;background:var(--accent);width:0%}
 
-    /* Tableau */
+    /* Tableau desktop */
     table{width:100%;border-collapse:collapse;min-width:720px}
     th,td{border-bottom:1px solid var(--border);padding:10px;font-size:14px;vertical-align:top}
     th{background:#f7f4f0;text-align:left;color:#354556}
@@ -40,21 +40,33 @@
     .scroll{overflow:auto;-webkit-overflow-scrolling:touch}
     .pill{display:inline-block;padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-size:12px;color:#425363;background:#f7fafc}
 
-    /* Responsive “cartes” pour l’historique */
+    /* Mobile : liste compacte */
+    #listMobile{ display:none }
     @media (max-width:720px){
-      thead{display:none}
-      table, tbody, tr, td{display:block;width:100%}
-      tr{border:1px solid var(--border);border-radius:12px;background:#fff;margin-bottom:10px;padding:8px}
-      td{border:0;padding:6px 8px}
-      td::before{
-        content:attr(data-label);
-        display:block;
-        font-size:12px;
-        color:var(--muted);
-        margin-bottom:2px;
+      #tbl{ display:none }
+      #listMobile{ display:block }
+      .mitem{
+        border:1px solid var(--border);
+        border-radius:12px;
+        background:#fff;
+        padding:8px 10px;
+        margin-bottom:8px;
       }
-      td.right{text-align:left}
-      .td-actions{margin-top:6px}
+      .mrow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+      .mrow + .mrow{ margin-top:4px }
+      .midx{ color:var(--muted); font-size:12px; min-width:22px; text-align:center }
+      .mdetails{
+        flex:1; min-width:0; font-size:14px;
+        white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      }
+      .mbadge{
+        display:inline-block; font-size:12px; padding:2px 8px;
+        border:1px solid var(--border); border-radius:999px; background:#f7fafc;
+      }
+      .mscores{ margin-left:auto; font-variant-numeric:tabular-nums; font-size:13px }
+      .mscores b{ font-weight:800 }
+      .mdelete{ margin-left:auto }
+      .mdelete .btn{ padding:6px 10px }
     }
 
     /* Accordéon */
@@ -64,28 +76,28 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Belote et Boules</h1>
+    <h1>Compteur Coinchée — 2000 points</h1>
 
     <!-- ÉQUIPES & JOUEURS (accordéon) -->
     <div class="card" id="teamsCard">
       <div id="teamsContent">
         <div class="row">
           <div>
-            <label>Équipe A</label>
+            <label>Nom Équipe A</label>
             <input id="teamA" type="text" placeholder="Équipe A">
             <label style="margin-top:8px">Joueurs Équipe A</label>
             <div class="row-players">
-              <input id="playersA1" type="text" placeholder="Vico,Yo">
-              <input id="playersA2" type="text" placeholder="Phif, PO">
+              <input id="playersA1" type="text" placeholder="A1 (ex. Alice)">
+              <input id="playersA2" type="text" placeholder="A2 (ex. Bob)">
             </div>
           </div>
           <div>
-            <label>Équipe B</label>
+            <label>Nom Équipe B</label>
             <input id="teamB" type="text" placeholder="Équipe B">
             <label style="margin-top:8px">Joueurs Équipe B</label>
             <div class="row-players">
-              <input id="playersB1" type="text" placeholder="Djessa, Antho">
-              <input id="playersB2" type="text" placeholder="Roro, ???">
+              <input id="playersB1" type="text" placeholder="B1 (ex. Chloé)">
+              <input id="playersB2" type="text" placeholder="B2 (ex. David)">
             </div>
           </div>
         </div>
@@ -124,7 +136,7 @@
     <div class="card">
       <div class="row-4">
         <div>
-          <label>Preneur</label>
+          <label>Preneur (équipe)</label>
           <select id="preneur">
             <option value="">— Sélectionner —</option>
             <option value="A">Équipe A</option>
@@ -145,8 +157,8 @@
         <div>
           <label>Coinche</label>
           <select id="coinche">
-            <option value="1">Aucune</option>
-            <option value="2">Coinchée</option>
+            <option value="1">Aucune (×1)</option>
+            <option value="2">Coinchée (×2)</option>
           </select>
         </div>
         <div>
@@ -156,7 +168,7 @@
       </div>
       <div class="row" style="margin-top:10px">
         <div>
-          <label>Départ</label>
+          <label>Départ (qui commence la donne)</label>
           <select id="starter"><option value="">— Sélectionner —</option></select>
         </div>
         <div style="align-self:end">
@@ -173,7 +185,7 @@
     <div class="card">
       <div class="row">
         <div>
-          <label>Points faits (0–160)</label>
+          <label>Points faits par le preneur (0–160)</label>
           <input id="scoreFait" type="number" inputmode="numeric" min="0" max="160" placeholder="ex. 100">
         </div>
         <div style="align-self:end">
@@ -200,6 +212,9 @@
           </thead>
           <tbody></tbody>
         </table>
+
+        <!-- Vue mobile compacte -->
+        <div id="listMobile"></div>
       </div>
       <div id="winner" style="margin-top:10px"></div>
     </div>
@@ -207,6 +222,7 @@
     <!-- Purge totale / reset -->
     <div class="card">
       <button class="btn danger" id="purgeAll">Remettre à zéro & purger le cache</button>
+      <div class="hint" style="margin-top:6px">Efface les scores, noms, joueurs et préférences enregistrés dans ce navigateur.</div>
     </div>
   </div>
 
@@ -237,7 +253,8 @@
         scoreFait: $('#scoreFait'), validate: $('#validate'),
         tblBody: $('#tbl tbody'), winner: $('#winner'),
         purgeAll: $('#purgeAll'),
-        preneurTeamName: $('#preneurTeamName')
+        preneurTeamName: $('#preneurTeamName'),
+        listMobile: $('#listMobile')
       };
 
       const state = {
@@ -323,6 +340,36 @@
 
       function totals(){ let a=0,b=0; for(const r of state.rounds){a+=r.a;b+=r.b;} return {a,b}; }
 
+      /* ------- Vue mobile compacte ------- */
+      function renderMobileHistory(){
+        const wrap = els.listMobile;
+        if(!wrap) return;
+        wrap.innerHTML = '';
+        let sa=0, sb=0;
+        state.rounds.forEach((r,i)=>{
+          sa += r.a; sb += r.b;
+          const item = document.createElement('div');
+          item.className = 'mitem';
+          item.innerHTML = `
+            <div class="mrow">
+              <div class="midx">#${i+1}</div>
+              <div class="mdetails">${r.details}</div>
+            </div>
+            <div class="mrow">
+              <span class="mbadge">${r.starter ? 'Départ: '+r.starter : 'Départ: —'}</span>
+              <span class="mscores">A:<b>+${r.a}</b> • B:<b>+${r.b}</b></span>
+              <span class="mdelete">
+                <button class="btn danger" data-del-mobile="${i}" aria-label="Supprimer">🗑</button>
+              </span>
+            </div>
+          `;
+          wrap.appendChild(item);
+        });
+        wrap.querySelectorAll('button[data-del-mobile]').forEach(btn=>{
+          btn.onclick = ()=>{ state.rounds.splice(parseInt(btn.dataset.delMobile,10),1); save(); render(); };
+        });
+      }
+
       function render(){
         applyTeamNames();
         toggleTeams(state.ui.teamsCollapsed);
@@ -348,7 +395,7 @@
             <td data-label="Actions" class="td-actions"><button class="btn danger" data-del="${i}" aria-label="Supprimer">🗑</button></td>`;
           els.tblBody.appendChild(tr);
         });
-        // inline edit
+        // inline edit desktop
         els.tblBody.querySelectorAll('[contenteditable]').forEach(cell=>{
           cell.addEventListener('blur', ()=>{
             const i=parseInt(cell.dataset.i,10), k=cell.dataset.k;
@@ -361,12 +408,17 @@
           btn.onclick=()=>{ state.rounds.splice(parseInt(btn.dataset.del,10),1); save(); render(); };
         });
 
+        // mobile list
+        renderMobileHistory();
+
+        // vainqueur
         els.winner.textContent='';
         if(a>=TARGET || b>=TARGET){ els.winner.textContent = (a===b?'Égalité':'Victoire '+(a>b?state.teams.A:state.teams.B)) + ` (${a}–${b})`; }
+
         save();
       }
 
-      /* ------- Validation formulaire Étape 1 ------- */
+      /* ------- Validation Étape 1 ------- */
       function annonceOK(){
         const v = parseInt(els.annonce.value,10);
         return !isNaN(v) && v>=80 && v<=160;
@@ -401,13 +453,12 @@
         };
 
         els.current.style.display='inline-block';
-        // On peut afficher “départ …” dans le chip de suivi (pas dans l’historique)
         els.currentTxt.textContent =
           `${annonce} ${suit} — Preneur ${state.teams[pr]}${mul>1?' — coinché':''}${starter? ' — départ '+starter:''}`;
 
         els.validate.disabled=false;
 
-        // reset champs (met à vide pour forcer re-sélection à la donne suivante)
+        // reset champs (force re-sélection pour la donne suivante)
         els.preneur.value=''; els.suit.value=''; els.coinche.value='1'; els.annonce.value=''; els.starter.value='';
         refreshPreneurLabels();
         refreshStarterOptions();
@@ -418,7 +469,7 @@
 
       function cancelHand(){ state.current=null; els.current.style.display='none'; els.validate.disabled=true; save(); }
 
-      // Texte Détails sans “départ …”
+      // Détails SANS “départ …” (le départ est dans sa colonne dédiée / la carte mobile)
       function computeRound(cur, sfRaw){
         const pr=cur.pr, df=(pr==='A'?'B':'A');
         const mul=cur.mul, annonce=cur.annonce, suit=cur.suit, starter=cur.starter||'';
@@ -483,12 +534,11 @@
       els.playersB1.addEventListener('input', syncPlayers);
       els.playersB2.addEventListener('input', syncPlayers);
 
-      // Sélection preneur / suit / annonce / starter => active le bouton si OK
+      // Sélection preneur / suit / starter / annonce => active le bouton si OK
       els.preneur.addEventListener('change', ()=>{ refreshPreneurLabels(); refreshStarterOptions(); updateStartBtn(); });
       els.suit.addEventListener('change', ()=>{ updateStartBtn(); });
       els.starter.addEventListener('change', ()=>{ updateStartBtn(); });
       els.annonce.addEventListener('input', ()=>{
-        // verrou coinche si 160
         const v=parseInt(els.annonce.value,10)||0;
         if(v>=160){ els.coinche.value='1'; els.coinche.disabled=true; } else { els.coinche.disabled=false; }
         updateStartBtn();
@@ -508,7 +558,7 @@
 
       // Boot
       load();
-      // Mettre preneur/suit/starter/annonce à vide pour forcer la 1re sélection si un ancien état les avait remplis
+      // Forcer preneur/suit/starter/annonce à vide au chargement (pour éviter des reliquats d’une session précédente)
       els.preneur.value=''; els.suit.value=''; els.starter.value=''; els.annonce.value='';
       refreshPreneurLabels(); refreshStarterOptions(); updateStartBtn();
       render();
