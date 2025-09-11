@@ -67,6 +67,14 @@
       .mscores b{ font-weight:800 }
       .mdelete{ margin-left:auto }
       .mdelete .btn{ padding:6px 10px }
+      .mtotals{
+        margin-left:auto;
+        font-size:12px;
+        font-variant-numeric: tabular-nums;
+        color:#354556;
+        white-space:nowrap;
+      }
+      .mtotals b{ font-weight:800 }
     }
 
     /* Accordéon */
@@ -342,18 +350,19 @@
 
       /* ------- Vue mobile compacte ------- */
       function renderMobileHistory(){
-        const wrap = els.listMobile;
+        const wrap = document.getElementById('listMobile');
         if(!wrap) return;
         wrap.innerHTML = '';
         let sa=0, sb=0;
         state.rounds.forEach((r,i)=>{
-          sa += r.a; sb += r.b;
+          sa += r.a; sb += r.b; // cumuls jusqu’à cette ligne
           const item = document.createElement('div');
           item.className = 'mitem';
           item.innerHTML = `
             <div class="mrow">
               <div class="midx">#${i+1}</div>
               <div class="mdetails">${r.details}</div>
+              <div class="mtotals">ΣA:<b>${sa}</b> • ΣB:<b>${sb}</b></div>
             </div>
             <div class="mrow">
               <span class="mbadge">${r.starter ? 'Départ: '+r.starter : 'Départ: —'}</span>
@@ -369,6 +378,7 @@
           btn.onclick = ()=>{ state.rounds.splice(parseInt(btn.dataset.delMobile,10),1); save(); render(); };
         });
       }
+
 
       function render(){
         applyTeamNames();
