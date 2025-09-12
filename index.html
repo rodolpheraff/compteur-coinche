@@ -330,15 +330,40 @@
         const t = els.preneur.value;
         els.preneurTeamName.textContent = 'Équipe : ' + (t==='A' ? (teamLabel('A')||'—') : t==='B' ? (teamLabel('B')||'—') : '—');
       }
+      function playerNameFallback(team, idx){
+        // idx = 0 ou 1
+        const name = (state.players[team]?.[idx] || '').trim();
+        if (name) return name;
+        // fallback court et clair
+        return (team === 'A' ? 'A' : 'B') + (idx+1);
+      }
+
       function refreshStarterOptions(){
-        // Si l'utilisateur vient d'ouvrir le select #starter, ne pas le reconstruire
+        // Si l'utilisateur a déjà ouvert le select, ne pas le reconstruire (évite la fermeture iOS)
         if (document.activeElement === els.starter) return;
 
-        const t = els.preneur.value; // 'A' / 'B' / ''
-        const list = (t==='A'||t==='B') ? (state.players[t]||[]).filter(Boolean) : [];
-        const opts = [''].concat(list).map(n=>`<option value="${n}">${n||'— Sélectionner —'}</option>`).join('');
+        const pA1 = playerNameFallback('A', 0);
+        const pA2 = playerNameFallback('A', 1);
+        const pB1 = playerNameFallback('B', 0);
+        const pB2 = playerNameFallback('B', 1);
+
+        const opts = [
+          '<option value=""></option>',
+          `<option value="${pA1}">${pA1}</option>`,
+          `<option value="${pA2}">${pA2}</option>`,
+          `<option value="${pB1}">${pB1}</option>`,
+          `<option value="${pB2}">${pB2}</option>`
+        ].join('');
+
         els.starter.innerHTML = opts;
+
+        // Si une valeur existait déjà et correspond encore à une des 4, on la préserve
+        const current = els.starter.value;
+        if ([pA1, pA2, pB1, pB2].includes(current)) {
+          els.starter.value = current;
+        }
       }
+
 
       function applyTeamNames(){
         els.teamA.value = state.teams.A; els.teamB.value = state.teams.B;
