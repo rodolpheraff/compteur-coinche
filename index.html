@@ -595,17 +595,32 @@
         if(annonce>=160){
           if(tookAll){ const pts=500; if(pr==='A')a=pts; else b=pts; }
           else       { const pts=250 + 160; if(df==='A')a=pts; else b=pts; }
+
         }else if(tookAll){
           const pts=250 + annonce; if(pr==='A')a=pts; else b=pts;
+
         }else if(success){
-          if(mul>1){ const prPts = annonce*2 + 160; if(pr==='A') a=prPts; else b=prPts; }
-          else      { const prPts = annonce + sf;   if(pr==='A') a=prPts; else b=prPts; }
-          const defPts = 160 - sf; if(defPts>0){ if(pr==='A') b+=defPts; else a+=defPts; }
+          if(mul > 1){
+            // coinché réussi : tout au preneur, défense 0
+            const prPts = annonce*2 + 160;
+            if(pr==='A') a = prPts; else b = prPts;
+          }else{
+            // normal : répartition classique
+            const prPts = annonce + sf;
+            if(pr==='A') a = prPts; else b = prPts;
+
+            const defPts = 160 - sf;
+            if(defPts>0){ if(pr==='A') b += defPts; else a += defPts; }
+          }
+
         }else{
-          const defPts=160 + annonce; if(df==='A'){ a=defPts; } else { b=defPts; }
+          // échec : si coinché, défense prend 160 + 2×annonce, sinon 160 + annonce
+          const defPts = (mul > 1) ? (annonce * 2 + 160) : (160 + annonce);
+          if(df==='A'){ a=defPts; } else { b=defPts; }
         }
 
         return {a,b,starter, pr, suit, annonce, mul};
+
       }
 
       function addRound(){
